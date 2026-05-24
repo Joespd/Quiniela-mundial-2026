@@ -143,6 +143,11 @@ export default function App() {
   const [matches, setMatches] = useState([]);
   const [users, setUsers] = useState([]);
   const [autorizados, setAutorizados] = useState([]);
+
+
+  // === Usuario nombre ===
+  const [teams, setTeams] = useState([]);      // Para la lista de equipos
+  const [venues, setVenues] = useState([]);    // Para la lista de estadios
   
   // Estados de Sesión de Usuario
   const [currentUser, setCurrentUser] = useState(null); 
