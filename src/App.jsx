@@ -1128,7 +1128,39 @@ useEffect(() => {
                 <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2.5 flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-emerald-400" /> Marcadores Oficiales
                 </h3>
-                
+
+
+{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
+  
+  {/* Listado y Agregar Equipos */}
+  <div>
+    <h3 className="text-xs font-black text-emerald-400 uppercase mb-3">Gestión de Equipos ({teams.length})</h3>
+    <div className="flex flex-col gap-2 mb-3">
+      {teams.map(t => (
+        <div key={t.id} className="text-[10px] bg-slate-900 p-2 rounded border border-slate-800 text-slate-300">
+          {t.nombre} - <span className="text-sky-400">{t.codigo}</span> (Grupo {t.grupo})
+        </div>
+      ))}
+    </div>
+    {/* Nota: Aquí puedes poner los inputs si quieres agregar equipos desde aquí */}
+  </div>
+
+  {/* Listado de Sedes */}
+  <div>
+    <h3 className="text-xs font-black text-blue-400 uppercase mb-3">Gestión de Sedes ({venues.length})</h3>
+    <div className="flex flex-col gap-2">
+      {venues.map(v => (
+        <div key={v.id} className="text-[10px] bg-slate-900 p-2 rounded border border-slate-800 text-slate-300">
+          {v.nombre}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+{/* --- FIN SECCIÓN CATÁLOGOS --- */}
+
+
                 <div className="space-y-2">
                   {matches.map(match => (
                     <div key={match.id} className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between gap-2 text-xs">
