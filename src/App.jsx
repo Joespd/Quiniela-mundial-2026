@@ -956,15 +956,13 @@ useEffect(() => {
                         <span className="text-slate-500">Resultado Oficial: <strong className="text-slate-300 font-mono">{match.realHome}-{match.realAway}</strong></span>
                         <span className="font-extrabold text-emerald-400 bg-emerald-500/15 py-0.5 px-2 rounded-full">
                           +{pointsEarned} Pts
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                          </span>
           </div>
         )}
+      </div>
+    );
+  })} {/* Cierra el .map() */}
+</div> // Cierra el .grid
 
         {/* TAB 2: TABLA Y POZO */}
         {activeTab === 'leaderboard' && (
