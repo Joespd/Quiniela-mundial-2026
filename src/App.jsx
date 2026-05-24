@@ -305,6 +305,31 @@ export default function App() {
     };
   }, [currentUser]);
 
+// Carga de Equipos (Colección "teams")
+  const unsubTeams = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), (snap) => {
+    setTeams(snap.docs.map(d => ({
+      id: d.id,
+      nombre: d.data().Nombre,
+      codigo: d.data().Código,
+      grupo: d.data().Grupo
+    })));
+  });
+
+  // Carga de Sedes (Colección "venues")
+  const unsubVenues = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), (snap) => {
+    setVenues(snap.docs.map(d => ({
+      id: d.id,
+      nombre: d.data().Sede
+    })));
+  });
+
+  return () => {
+    unsubTeams();
+    unsubVenues();
+  };
+}, [currentUser]);
+
+
   // Logins/Logouts
   const handleGoogleLogin = async () => {
     try {
