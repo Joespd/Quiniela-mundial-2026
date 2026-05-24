@@ -1078,11 +1078,9 @@ useEffect(() => {
         {/* TAB 4: ADMINISTRACIÓN */}
 {activeTab === 'admin' && (
   <div className="space-y-6">
-    
-    {/* --- PANEL DE GESTIÓN: EQUIPOS Y SEDES --- */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
       
-      {/* Panel Equipos */}
+      {/* --- FORMULARIO EQUIPOS --- */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
         <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos</h3>
         <input type="text" id="inputName" placeholder="Nombre (ej. Brasil)" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
@@ -1095,61 +1093,37 @@ useEffect(() => {
             const n = document.getElementById('inputName').value;
             const c = document.getElementById('inputCode').value;
             const g = document.getElementById('inputGroup').value;
-            if (n && c) {
+            if (!n || !c) { alert("Campos obligatorios vacíos"); return; }
+            try {
               await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { Nombre: n, Código: c.toLowerCase(), Grupo: g });
+              alert("Equipo guardado con éxito");
               document.getElementById('inputName').value = '';
               document.getElementById('inputCode').value = '';
               document.getElementById('inputGroup').value = '';
-            }
+            } catch (e) { alert("Error al guardar equipo: " + e.message); }
           }}
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2 rounded-lg text-xs"
         >+ AGREGAR EQUIPO</button>
       </div>
 
-      {/* Panel Sedes */}
+      {/* --- FORMULARIO SEDES --- */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
         <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes</h3>
         <input type="text" id="inputVenue" placeholder="Nombre de la Sede" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
         <button 
           onClick={async () => {
             const v = document.getElementById('inputVenue').value;
-            if (v) {
+            if (!v) { alert("Escribe el nombre de la sede"); return; }
+            try {
               await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { Sede: v });
+              alert("Sede guardada con éxito");
               document.getElementById('inputVenue').value = '';
-            }
+            } catch (e) { alert("Error al guardar sede: " + e.message); }
           }}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-2 rounded-lg text-xs"
         >+ AGREGAR SEDE</button>
       </div>
     </div>
-
-    {/* --- LISTADO Y GESTIÓN DE PARTIDOS --- */}
-    <div className="space-y-2">
-      {matches.map(match => (
-        <div key={match.id} className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5 font-semibold truncate max-w-[150px]">
-             <span>{match.homeTeam} vs {match.awayTeam}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <input type="number" value={match.realHome || ''} onChange={(e) => handleRealScoreChange(match.id, 'home', e.target.value)} className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded text-emerald-400" />
-            <span>:</span>
-            <input type="number" value={match.realAway || ''} onChange={(e) => handleRealScoreChange(match.id, 'away', e.target.value)} className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded text-emerald-400" />
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {/* --- CREAR PARTIDO --- */}
-    {esAdministrador && (
-      <div className="border-t border-slate-800 pt-3">
-        <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
-          <input type="text" placeholder="Local" value={newMatch.homeTeam} onChange={(e) => handleTeamChange('home', e.target.value)} className="bg-slate-950 border border-slate-700 p-2 rounded" required />
-          <input type="text" placeholder="Visitante" value={newMatch.awayTeam} onChange={(e) => handleTeamChange('away', e.target.value)} className="bg-slate-950 border border-slate-700 p-2 rounded" required />
-          <button type="submit" className="bg-sky-500 text-slate-950 font-black py-2 rounded-lg col-span-2">Añadir Encuentro</button>
-        </form>
-      </div>
-    )}
-
   </div>
 )}
 
