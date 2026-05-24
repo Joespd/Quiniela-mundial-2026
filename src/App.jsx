@@ -15,7 +15,8 @@ import {
   onSnapshot, 
   updateDoc,
   deleteDoc,
-  getDoc
+  getDoc,
+  addDoc
 } from 'firebase/firestore';
 import { 
   Trophy, 
