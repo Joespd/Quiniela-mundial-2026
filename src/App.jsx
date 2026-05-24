@@ -1,113 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
+import React, { useState, useEffect, useMemo } from 'react';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc } from 'firebase/firestore';
-import { Trophy, Users, MapPin, Target, ShieldCheck, PiggyBank, Plus, Save, Trash2 } from 'lucide-react';
+import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
+import { Trophy, Users, MapPin, Target, PiggyBank, Calendar, ChevronRight } from 'lucide-react';
 
-// Configuración Firebase (Usando el appId del entorno)
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'spd-mundial-2026';
+// 1. Inicialización segura de Firebase
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const app = initializeApp(firebaseConfig);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'mundial-2026-prod';
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('matches');
-  const [teams, setTeams] = useState([]);
-  const [venues, setVenues] = useState([]);
-  const [matches, setMatches] = useState([]);
-  const [users, setUsers] = useState([]);
-  
-  // Estados para formularios
-  const [newTeam, setNewTeam] = useState({ name: '', code: '', group: 'A' });
-  const [newMatch, setNewMatch] = useState({ home: '', away: '', venue: '', stage: 'Fecha 1', date: '' });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('home');
+  const [data, setData] = useState({ matches: [], teams: [], users: [] });
 
+  // 2. Auth y carga de datos en tiempo real
   useEffect(() => {
-    signInAnonymously(auth);
-    const unsubTeams = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), (s) => setTeams(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-    const unsubVenues = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), (s) => setVenues(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-    const unsubMatches = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'matches'), (s) => setMatches(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-    return () => { unsubTeams(); unsubVenues(); unsubMatches(); };
+    const unsubAuth = onAuthStateChanged(auth, (u) => {
+      if (u) {
+        setUser(u);
+        setLoading(false);
+      } else {
+        signInAnonymously(auth);
+      }
+    });
+
+    // Suscripciones a colecciones
+    const unsubMatches = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'matches'), (s) => 
+      setData(prev => ({ ...prev, matches: s.docs.map(d => ({ id: d.id, ...d.data() })) }))
+    );
+    
+    return () => { unsubAuth(); unsubMatches(); };
   }, []);
 
-  const handleAddTeam = async () => {
-    if (!newTeam.name) return;
-    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), newTeam);
-    setNewTeam({ name: '', code: '', group: 'A' });
-  };
-
-  const getStandings = (group) => {
-    const groupTeams = teams.filter(t => t.group === group);
-    return groupTeams.map(team => {
-      const teamMatches = matches.filter(m => (m.home === team.name || m.away === team.name) && m.result);
-      let pts = 0;
-      teamMatches.forEach(m => {
-        const [h, a] = m.result.split('-').map(Number);
-        if (m.home === team.name) {
-          if (h > a) pts += 3; else if (h === a) pts += 1;
-        } else {
-          if (a > h) pts += 3; else if (a === h) pts += 1;
-        }
-      });
-      return { ...team, pts };
-    }).sort((a, b) => b.pts - a.pts);
-  };
+  if (loading) return <div className="h-screen flex items-center justify-center text-emerald-500 font-bold">Cargando Sistema Mundial...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4">
-      {/* Header con Premio */}
-      <div className="flex justify-between items-center bg-slate-900 p-4 rounded-2xl mb-6 border border-slate-800">
-        <h1 className="font-bold text-lg text-emerald-400">SPD MUNDIAL 2026</h1>
-        <div className="flex items-center gap-3">
-          <PiggyBank className="text-emerald-500 w-8 h-8" />
-          <div>
-            <p className="text-[10px] text-slate-400 uppercase">Premio</p>
-            <p className="font-black text-emerald-400 text-lg">$5,000.00</p>
-          </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500/30">
+      {/* Navbar Superior */}
+      <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 p-4 flex justify-between items-center">
+        <h1 className="font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
+          <Trophy className="text-yellow-500" /> MUNDIAL 2026
+        </h1>
+        <div className="bg-emerald-950 px-3 py-1 rounded-full border border-emerald-800 flex items-center gap-2">
+          <PiggyBank size={16} className="text-emerald-400" />
+          <span className="font-bold text-emerald-400">$5,000.00</span>
         </div>
-      </div>
+      </nav>
 
-      {/* Navegación */}
-      <div className="flex gap-2 overflow-x-auto pb-4">
-        {[{id:'matches', label:'Partidos'}, {id:'standings', label:'Grupos'}, {id:'admin', label:'Admin'}].map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === t.id ? 'bg-emerald-600' : 'bg-slate-800'}`}>
-            {t.label}
+      {/* Contenido Principal */}
+      <main className="max-w-4xl mx-auto p-4">
+        {activeTab === 'home' && (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            {/* Tarjeta de Resumen */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl border border-slate-700 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-2">¡Bienvenido, Usuario!</h2>
+              <p className="text-slate-400 mb-6">Gestiona tus pronósticos y sigue los resultados en tiempo real.</p>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { label: 'Partidos', val: data.matches.length, icon: Calendar },
+                  { label: 'Usuarios', val: '12', icon: Users },
+                  { label: 'Estadios', val: '16', icon: MapPin },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+                    <stat.icon className="mx-auto mb-1 text-emerald-500" size={20} />
+                    <div className="text-xl font-black">{stat.val}</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-bold">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Listado de Partidos */}
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <Target className="text-emerald-500" /> Próximos Encuentros
+            </h3>
+            <div className="space-y-3">
+              {data.matches.length === 0 ? (
+                <div className="p-8 text-center text-slate-600 italic">No hay partidos registrados aún.</div>
+              ) : (
+                data.matches.map(m => (
+                  <div key={m.id} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex justify-between items-center hover:border-emerald-500/50 transition-colors">
+                    <div className="flex flex-col">
+                      <span className="font-bold">{m.home || 'TBD'} vs {m.away || 'TBD'}</span>
+                      <span className="text-xs text-slate-500">{m.date || 'Sin fecha'}</span>
+                    </div>
+                    <ChevronRight className="text-slate-600" />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Menú inferior para móviles */}
+      <div className="fixed bottom-0 w-full bg-slate-900 border-t border-slate-800 flex justify-around p-3 z-50">
+        {['home', 'standings', 'profile'].map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`p-2 ${activeTab === tab ? 'text-emerald-400' : 'text-slate-500'}`}>
+            <div className="capitalize font-bold text-xs">{tab}</div>
           </button>
         ))}
       </div>
-
-      {/* Contenido */}
-      {activeTab === 'admin' && (
-        <div className="space-y-6">
-          <div className="bg-slate-900 p-4 rounded-xl">
-            <h2 className="font-bold mb-4 flex items-center gap-2"><ShieldCheck size={18}/> Equipos</h2>
-            <div className="grid grid-cols-2 gap-2">
-              <input placeholder="Nombre" className="bg-slate-800 p-2 rounded" onChange={e => setNewTeam({...newTeam, name: e.target.value})} value={newTeam.name}/>
-              <input placeholder="Abrev." className="bg-slate-800 p-2 rounded" onChange={e => setNewTeam({...newTeam, code: e.target.value})} value={newTeam.code}/>
-              <select className="bg-slate-800 p-2 rounded col-span-2" onChange={e => setNewTeam({...newTeam, group: e.target.value})} value={newTeam.group}>
-                {['A','B','C','D','E','F','G','H'].map(g => <option key={g} value={g}>Grupo {g}</option>)}
-              </select>
-              <button onClick={handleAddTeam} className="col-span-2 bg-emerald-600 p-2 rounded font-bold">Guardar Equipo</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'standings' && (
-        <div className="space-y-4">
-          {['A','B','C','D','E','F','G','H'].map(group => (
-            <div key={group} className="bg-slate-900 p-4 rounded-xl">
-              <h3 className="font-bold text-emerald-400 mb-2">GRUPO {group}</h3>
-              {getStandings(group).map(t => (
-                <div key={t.id} className="flex justify-between py-1 border-b border-slate-800 text-sm">
-                  <span>{t.name} ({t.code})</span>
-                  <span className="font-bold">{t.pts} pts</span>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
