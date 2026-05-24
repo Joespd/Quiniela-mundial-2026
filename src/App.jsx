@@ -1231,10 +1231,9 @@ useEffect(() => {
                           <button onClick={() => handleDeleteMatch(match.id)} className="text-slate-500 hover:text-rose-400 ml-1">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        )}
-</div>
-      </div>
-    ))}
+))}
+                </div>
+              </div>
 
 {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
 {esAdministrador && (
