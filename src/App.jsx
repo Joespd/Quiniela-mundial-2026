@@ -1087,14 +1087,23 @@ useEffect(() => {
       <div className="space-y-3">
         {usuarios.map((u) => (
           <div key={u.id} className="flex gap-4 items-center bg-slate-950 p-3 rounded-lg border border-slate-800">
-            {/* Ajusta 'username' o 'email' según el campo real que tengas en la base de datos */}
             <input 
               className="bg-transparent text-white flex-1 outline-none border-b border-slate-700 focus:border-blue-500" 
-              defaultValue={u.username || u.email} 
-              onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', u.id), { username: e.target.value })} 
+              defaultValue={u.username || u.email || ''} 
+              onBlur={async (e) => {
+                try {
+                  await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', u.id), { username: e.target.value });
+                } catch (err) {
+                  console.error("Error actualizando usuario:", err);
+                }
+              }} 
             />
             <button 
-              onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', u.id))} 
+              onClick={async () => {
+                if (window.confirm('¿Seguro que deseas eliminar este usuario?')) {
+                  await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', u.id));
+                }
+              }} 
               className="text-rose-500 hover:text-rose-400 font-bold px-2"
             >
               Eliminar
@@ -1113,14 +1122,22 @@ useEffect(() => {
             <input className="bg-transparent text-sm outline-none border-b border-slate-800" defaultValue={t.grupo} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { grupo: e.target.value })} />
             <input className="bg-transparent text-sm outline-none border-b border-slate-800" defaultValue={t.codigo} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { codigo: e.target.value })} />
             <input className="bg-transparent text-sm outline-none border-b border-slate-800" defaultValue={t.nombre} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { nombre: e.target.value })} />
-            <button onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id))} className="text-rose-500 hover:text-rose-400 font-bold">Eliminar</button>
+            <button 
+              onClick={async () => {
+                if (window.confirm('¿Eliminar equipo?')) {
+                  await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id));
+                }
+              }} 
+              className="text-rose-500 hover:text-rose-400 font-bold"
+            >
+              Eliminar
+            </button>
           </div>
         ))}
       </div>
     </div>
   </div>
 )}
-
       </main>
 
       <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
