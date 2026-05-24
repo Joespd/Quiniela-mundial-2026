@@ -71,7 +71,6 @@ try {
 }
 
 // === DATOS SEMILLA (PARTIDOS DE INAUGURACIÓN POR DEFECTO) ===
-// AHORA UTILIZANDO CÓDIGOS DE PAÍS DE 2 LETRAS (ej. mx, za, us)
 const SEED_MATCHES = [
   {
     id: 'm1',
@@ -108,6 +107,37 @@ const SEED_MATCHES = [
   }
 ];
 
+// === DICCIONARIO INTELIGENTE DE PAÍSES A BANDERAS ===
+// Identifica el nombre escrito y busca su código ISO (para automatizar panel de Admin)
+const COUNTRY_CODES = {
+  // Norte y Centroamérica
+  "méxico": "mx", "mexico": "mx",
+  "estados unidos": "us", "usa": "us", "eeuu": "us",
+  "canadá": "ca", "canada": "ca",
+  "guatemala": "gt", "costa rica": "cr", "panamá": "pa", "panama": "pa", 
+  "honduras": "hn", "el salvador": "sv", "jamaica": "jm",
+
+  // Sudamérica
+  "argentina": "ar", "brasil": "br", "uruguay": "uy", "colombia": "co", 
+  "ecuador": "ec", "chile": "cl", "perú": "pe", "peru": "pe", 
+  "venezuela": "ve", "paraguay": "py", "bolivia": "bo",
+
+  // Europa
+  "españa": "es", "espana": "es", "alemania": "de", "francia": "fr", "italia": "it", 
+  "inglaterra": "gb-eng", "portugal": "pt", "países bajos": "nl", "paises bajos": "nl", 
+  "holanda": "nl", "bélgica": "be", "belgica": "be", "croacia": "hr", "suiza": "ch", 
+  "dinamarca": "dk", "suecia": "se", "polonia": "pl", "gales": "gb-wls", "escocia": "gb-sct", "serbia": "rs",
+
+  // África
+  "marruecos": "ma", "senegal": "sn", "egipto": "eg", "camerún": "cm", "camerun": "cm", 
+  "ghana": "gh", "nigeria": "ng", "costa de marfil": "ci", "argelia": "dz", 
+  "túnez": "tn", "tunez": "tn", "sudáfrica": "za", "sudafrica": "za",
+
+  // Asia y Oceanía
+  "japón": "jp", "japon": "jp", "corea del sur": "kr", "arabia saudita": "sa", 
+  "irán": "ir", "iran": "ir", "australia": "au", "qatar": "qa", "nueva zelanda": "nz"
+};
+
 export default function App() {
   // === ESTADOS GENERALES ===
   const [matches, setMatches] = useState([]);
@@ -137,12 +167,12 @@ export default function App() {
   const [newUserPaid, setNewUserPaid] = useState(false);
   const [nuevoCorreoAutorizar, setNuevoCorreoAutorizar] = useState('');
   
-  // NUEVO FORMULARIO CON VALORES POR DEFECTO PARA BANDERAS (gt y mx)
+  // FORMULARIO DE NUEVO PARTIDO
   const [newMatch, setNewMatch] = useState({
     homeTeam: '',
     awayTeam: '',
-    homeFlag: 'gt',
-    awayFlag: 'mx',
+    homeFlag: '',
+    awayFlag: '',
     venue: '',
     date: '2026-06-15T18:00:00-06:00'
   });
@@ -507,7 +537,23 @@ export default function App() {
     }
   };
 
-  // Añadir un nuevo partido (Admin) - AHORA GUARDA CÓDIGOS DE TEXTO PARA BANDERAS
+  // Función inteligente para actualizar el código de bandera automáticamente al escribir el equipo
+  const handleTeamChange = (type, value) => {
+    const field = type === 'home' ? 'homeTeam' : 'awayTeam';
+    const flagField = type === 'home' ? 'homeFlag' : 'awayFlag';
+    
+    // Convertir el nombre a minúsculas y buscarlo en el diccionario
+    const normalizedValue = value.toLowerCase().trim();
+    const code = COUNTRY_CODES[normalizedValue];
+
+    setNewMatch(prev => ({
+      ...prev,
+      [field]: value,
+      ...(code ? { [flagField]: code } : {}) // Si encuentra el país, rellena el código de la bandera
+    }));
+  };
+
+  // Añadir un nuevo partido (Admin)
   const handleAddMatch = async (e) => {
     e.preventDefault();
     if (!newMatch.homeTeam || !newMatch.awayTeam || !newMatch.venue) {
@@ -519,8 +565,8 @@ export default function App() {
       id: 'm_' + Date.now(),
       homeTeam: newMatch.homeTeam,
       awayTeam: newMatch.awayTeam,
-      homeFlag: newMatch.homeFlag,
-      awayFlag: newMatch.awayFlag,
+      homeFlag: newMatch.homeFlag || 'un', // 'un' bandera de UN si está vacío
+      awayFlag: newMatch.awayFlag || 'un',
       venue: newMatch.venue,
       date: newMatch.date,
       realHome: null,
@@ -533,8 +579,8 @@ export default function App() {
         setNewMatch({
           homeTeam: '',
           awayTeam: '',
-          homeFlag: 'gt',
-          awayFlag: 'mx',
+          homeFlag: '',
+          awayFlag: '',
           venue: '',
           date: '2026-06-15T18:00:00-06:00'
         });
@@ -1086,21 +1132,23 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Crear Partido (Admin) - NUEVOS PLACEHOLDERS DE TEXTO PARA BANDERAS */}
+              {/* Crear Partido (Admin) - NUEVOS PLACEHOLDERS CON DICCIONARIO INTELIGENTE */}
               {esAdministrador && (
                 <div className="border-t border-slate-800 pt-3">
                   <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
                   <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
-                    <input type="text" placeholder="Local" value={newMatch.homeTeam} onChange={(e) => setNewMatch({...newMatch, homeTeam: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
-                    <input type="text" placeholder="Visitante" value={newMatch.awayTeam} onChange={(e) => setNewMatch({...newMatch, awayTeam: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
                     
-                    {/* INPUTS MODIFICADOS PARA BANDERAS (ej. mx, ar, br) */}
-                    <input type="text" placeholder="Cód. País L (ej. mx, ar)" value={newMatch.homeFlag} onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" />
-                    <input type="text" placeholder="Cód. País V (ej. us, br)" value={newMatch.awayFlag} onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" />
+                    {/* Al escribir aquí, la bandera se rellena sola */}
+                    <input type="text" placeholder="Local (Ej. Brasil)" value={newMatch.homeTeam} onChange={(e) => handleTeamChange('home', e.target.value)} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
+                    <input type="text" placeholder="Visitante (Ej. España)" value={newMatch.awayTeam} onChange={(e) => handleTeamChange('away', e.target.value)} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
+                    
+                    {/* Estos inputs se rellenan automáticamente, pero puedes editarlos si quieres */}
+                    <input type="text" placeholder="Cód. País L (ej. br)" value={newMatch.homeFlag} onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold" />
+                    <input type="text" placeholder="Cód. País V (ej. es)" value={newMatch.awayFlag} onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold" />
                     
                     <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
                     <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
-                    <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase">Añadir Encuentro</button>
+                    <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
                   </form>
                 </div>
               )}
