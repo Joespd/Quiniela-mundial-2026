@@ -48,7 +48,6 @@ import {
 const appId = 'quiniela-mundial-2026-gt';
 
 // Configuración de tu consola de Firebase
-// La clave de API se autocompleta en runtime por el navegador
 const firebaseConfig = {
   apiKey: "AIzaSyAottz3glWQTC6ouO9tiwmoaquIQstnOBg",
   authDomain: "proyecto-bf596.firebaseapp.com",
@@ -72,13 +71,14 @@ try {
 }
 
 // === DATOS SEMILLA (PARTIDOS DE INAUGURACIÓN POR DEFECTO) ===
+// AHORA UTILIZANDO CÓDIGOS DE PAÍS DE 2 LETRAS (ej. mx, za, us)
 const SEED_MATCHES = [
   {
     id: 'm1',
     homeTeam: 'México',
     awayTeam: 'Sudáfrica',
-    homeFlag: '🇲🇽',
-    awayFlag: '🇿🇦',
+    homeFlag: 'mx',
+    awayFlag: 'za',
     venue: 'Estadio Azteca, CDMX',
     date: '2026-06-11T16:00:00-06:00', // CST Guatemala
     realHome: 2,
@@ -88,8 +88,8 @@ const SEED_MATCHES = [
     id: 'm2',
     homeTeam: 'Canadá',
     awayTeam: 'Suiza',
-    homeFlag: '🇨🇦',
-    awayFlag: '🇨🇭',
+    homeFlag: 'ca',
+    awayFlag: 'ch',
     venue: 'BMO Field, Toronto',
     date: '2026-06-12T14:00:00-06:00', // CST Guatemala
     realHome: 1,
@@ -99,8 +99,8 @@ const SEED_MATCHES = [
     id: 'm3',
     homeTeam: 'Estados Unidos',
     awayTeam: 'Australia',
-    homeFlag: '🇺🇸',
-    awayFlag: '🇦🇺',
+    homeFlag: 'us',
+    awayFlag: 'au',
     venue: 'SoFi Stadium, Los Ángeles',
     date: '2026-06-12T19:00:00-06:00', // CST Guatemala
     realHome: null,
@@ -115,9 +115,9 @@ export default function App() {
   const [autorizados, setAutorizados] = useState([]);
   
   // Estados de Sesión de Usuario
-  const [currentUser, setCurrentUser] = useState(null); // Auth de Firebase
-  const [authorizedUserRecord, setAuthorizedUserRecord] = useState(null); // Permiso en Firestore
-  const [activeUserId, setActiveUserId] = useState(''); // ID del jugador seleccionado para ver pronósticos
+  const [currentUser, setCurrentUser] = useState(null); 
+  const [authorizedUserRecord, setAuthorizedUserRecord] = useState(null); 
+  const [activeUserId, setActiveUserId] = useState(''); 
   const [cargandoAuth, setCargandoAuth] = useState(true);
   const [errorAcceso, setErrorAcceso] = useState(null);
 
@@ -136,11 +136,13 @@ export default function App() {
   const [newUserName, setNewUserName] = useState('');
   const [newUserPaid, setNewUserPaid] = useState(false);
   const [nuevoCorreoAutorizar, setNuevoCorreoAutorizar] = useState('');
+  
+  // NUEVO FORMULARIO CON VALORES POR DEFECTO PARA BANDERAS (gt y mx)
   const [newMatch, setNewMatch] = useState({
     homeTeam: '',
     awayTeam: '',
-    homeFlag: '⚽',
-    awayFlag: '⚽',
+    homeFlag: 'gt',
+    awayFlag: 'mx',
     venue: '',
     date: '2026-06-15T18:00:00-06:00'
   });
@@ -182,7 +184,6 @@ export default function App() {
           const docSnap = await getDoc(docRef);
           
           if (docSnap.exists()) {
-            // Usuario autorizado
             setCurrentUser(firebaseUser);
             setAuthorizedUserRecord(docSnap.data());
             setErrorAcceso(null);
@@ -200,13 +201,12 @@ export default function App() {
             }
             setActiveUserId(emailLower);
           } else {
-            // No autorizado en base de datos
             setErrorAcceso({
               name: firebaseUser.displayName,
               email: firebaseUser.email,
               photo: firebaseUser.photoURL
             });
-            await signOut(auth); // Desconectarlo
+            await signOut(auth);
           }
         } catch (err) {
           console.error("Error validando permisos de acceso:", err);
@@ -236,7 +236,6 @@ export default function App() {
     const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
     const autorizadosRef = collection(db, 'artifacts', appId, 'public', 'data', 'autorizados');
 
-    // Escucha en tiempo real de Partidos
     const unsubscribeMatches = onSnapshot(matchesRef, (snapshot) => {
       const list = [];
       snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
@@ -244,14 +243,12 @@ export default function App() {
         list.sort((a, b) => new Date(a.date) - new Date(b.date));
         setMatches(list);
       } else {
-        // Inicializar si está vacío
         SEED_MATCHES.forEach(async (m) => {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', m.id), m);
         });
       }
     }, (error) => console.error("Error de base de datos en partidos:", error));
 
-    // Escucha en tiempo real de Usuarios
     const unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
       const list = [];
       snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
@@ -260,7 +257,6 @@ export default function App() {
       }
     }, (error) => console.error("Error de base de datos en usuarios:", error));
 
-    // Escucha en tiempo real de Autorizados
     const unsubscribeAutorizados = onSnapshot(autorizadosRef, (snapshot) => {
       const list = [];
       snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
@@ -303,7 +299,6 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Comparar bloqueo de partido según hora de Guatemala
   const isMatchLocked = (matchDate) => {
     const matchTime = new Date(matchDate).getTime();
     const systemTime = new Date(simulatedTime + '-06:00').getTime();
@@ -315,7 +310,6 @@ export default function App() {
     return diffMs / (1000 * 60 * 60);
   };
 
-  // Formato Solicitado: dd/mm/yyyy - hh:mm p. m.
   const formatMatchDate = (dateString) => {
     const d = new Date(dateString);
     const day = String(d.getDate()).padStart(2, '0');
@@ -347,7 +341,6 @@ export default function App() {
 
     if (isNaN(pH) || isNaN(pA) || isNaN(rH) || isNaN(rA)) return 0;
 
-    // 1. Marcador exacto -> 3 puntos
     if (pH === rH && pA === rA) {
       return 3;
     }
@@ -355,7 +348,6 @@ export default function App() {
     const predictedWinner = pH > pA ? 'H' : pA > pH ? 'A' : 'D';
     const realWinner = rH > rA ? 'H' : rA > rH ? 'A' : 'D';
 
-    // 2. Acertar tendencia de ganador o empate correcto -> 2 puntos (Opción A)
     if (predictedWinner === realWinner) {
       return 2;
     }
@@ -404,7 +396,6 @@ export default function App() {
     return { total, exacts, winners, draws, fails, predictedCount };
   };
 
-  // Modificar marcador en Firestore
   const handlePredictionChange = async (matchId, team, value) => {
     const match = matches.find(m => m.id === matchId);
     if (isMatchLocked(match.date)) {
@@ -436,7 +427,6 @@ export default function App() {
     }
   };
 
-  // Modificar resultado real (Solo Administrador)
   const handleRealScoreChange = async (matchId, team, value) => {
     const valInt = value === '' ? null : parseInt(value);
     if (valInt !== null && (isNaN(valInt) || valInt < 0)) return;
@@ -459,7 +449,6 @@ export default function App() {
     }
   };
 
-  // Autorizar Email en Firestore (Mesa del Administrador)
   const handleAutorizarEmail = async (e) => {
     e.preventDefault();
     const emailLower = nuevoCorreoAutorizar.toLowerCase().trim();
@@ -477,13 +466,11 @@ export default function App() {
         autorizadoPor: currentUser.email
       });
 
-      // Si marcamos como pagado, y el usuario ya existe en la colección de perfiles de juego, actualizamos su estado de pago
       const userProfileRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower);
       const userSnap = await getDoc(userProfileRef);
       if (userSnap.exists()) {
         await updateDoc(userProfileRef, { paid: newUserPaid });
       } else {
-        // Crear perfil base si no existe para que aparezca en tabla inmediatamente
         await setDoc(userProfileRef, {
           id: emailLower,
           name: emailLower.split('@')[0],
@@ -501,7 +488,6 @@ export default function App() {
     }
   };
 
-  // Cambiar estado de pago en Firestore (Admin)
   const handleTogglePayment = async (userId) => {
     const userProfile = users.find(u => u.id === userId);
     if (!userProfile) return;
@@ -509,11 +495,9 @@ export default function App() {
     const nextState = !userProfile.paid;
 
     try {
-      // 1. Actualizar en colección 'users'
       const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', userId);
       await updateDoc(userDocRef, { paid: nextState });
 
-      // 2. Sincronizar en colección 'autorizados'
       const authDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'autorizados', userId);
       await updateDoc(authDocRef, { paid: nextState });
 
@@ -523,7 +507,7 @@ export default function App() {
     }
   };
 
-  // Añadir un nuevo partido (Admin)
+  // Añadir un nuevo partido (Admin) - AHORA GUARDA CÓDIGOS DE TEXTO PARA BANDERAS
   const handleAddMatch = async (e) => {
     e.preventDefault();
     if (!newMatch.homeTeam || !newMatch.awayTeam || !newMatch.venue) {
@@ -549,8 +533,8 @@ export default function App() {
         setNewMatch({
           homeTeam: '',
           awayTeam: '',
-          homeFlag: '⚽',
-          awayFlag: '⚽',
+          homeFlag: 'gt',
+          awayFlag: 'mx',
           venue: '',
           date: '2026-06-15T18:00:00-06:00'
         });
@@ -574,19 +558,16 @@ export default function App() {
 
   const activeUserObject = users.find(u => u.id === activeUserId) || users[0] || { name: 'Cargando...', predictions: {} };
 
-  // Clasificación en orden de puntuación y desempate por exactos
   const sortedLeaderboard = [...users].map(u => ({
     ...u,
     stats: getUserStats(u)
   })).sort((a, b) => b.stats.total - a.stats.total || b.stats.exacts - a.stats.exacts);
 
-  // Finanzas
   const totalInscritos = users.length;
   const pagadosCount = users.filter(u => u.paid).length;
   const pozoPremiosReal = pagadosCount * costPrize;
   const cobroServicioReal = pagadosCount * costService;
 
-  // Premiación 70% / 20% / 10%
   const premio1erLugar = pozoPremiosReal * 0.70;
   const premio2doLugar = pozoPremiosReal * 0.20;
   const premio3erLugar = pozoPremiosReal * 0.10;
@@ -596,7 +577,6 @@ export default function App() {
     return hoursToStart > 0 && hoursToStart <= 3;
   });
 
-  // Saber si el usuario logueado es el Admin (el primer registro o tu correo designado)
   const esAdministrador = authorizedUserRecord?.rol === 'admin' || currentUser?.email.toLowerCase() === 'joseh.gxz@gmail.com';
 
   // === INTERFAZ DE LOGUEO ===
@@ -623,7 +603,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* Error de Acceso (Usuario no autorizado en Firebase) */}
             {errorAcceso && (
               <div className="bg-rose-500/10 border border-rose-500/25 p-4 rounded-xl text-left space-y-2.5">
                 <div className="flex gap-2 text-rose-400 items-start">
@@ -646,7 +625,6 @@ export default function App() {
                 onClick={handleGoogleLogin}
                 className="w-full bg-white text-slate-900 hover:bg-slate-100 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-3 transition shadow-lg"
               >
-                {/* SVG de Google */}
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.68 1.54 14.98 1 12 1 7.35 1 3.37 3.68 1.41 7.59l3.86 3c.96-2.87 3.66-5.55 6.73-5.55z" />
                   <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.89c2.18-2.01 3.7-4.98 3.7-8.62z" />
@@ -670,7 +648,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
       
-      {/* CABECERA (SLIM, MÓVIL-FIRST, SE MUEVE CON SCROLL) */}
+      {/* CABECERA */}
       <header className="border-b border-slate-800 bg-slate-950/95 backdrop-blur z-40 transition-all">
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
           
@@ -688,7 +666,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Caja Financiera de Quetzales */}
           <div className="flex items-center gap-2.5 bg-slate-900/90 py-1 px-3 rounded-lg border border-slate-800 text-[11px]">
             <div className="text-center pr-2.5 border-r border-slate-800">
               <span className="text-[8px] text-slate-400 block uppercase font-bold">Pozo GT</span>
@@ -700,7 +677,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Información de Sesión y Selector */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-slate-900/85 p-1 rounded-lg border border-slate-800 text-[11px]">
               <span className="text-[8px] text-slate-400 pl-1 font-bold uppercase">QUINIE:</span>
@@ -727,7 +703,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* RELOJ DE GUATEMALA COMPACTO EN UNA SOLA LÍNEA */}
         <div className="bg-gradient-to-r from-slate-950 to-slate-900 border-t border-slate-800/80 px-4 py-1.5">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 text-[11px]">
             <button 
@@ -766,7 +741,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* REGLAS DE PUNTUACIÓN DE LA OPCIÓN A (VISIBLES PARA TODOS) */}
       <section className="max-w-7xl mx-auto px-4 mt-3">
         <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
           <div>
@@ -798,60 +772,27 @@ export default function App() {
         </div>
       </section>
 
-      {/* CUERPO DEL CONTENIDO */}
       <main className="max-w-7xl mx-auto px-4 py-3">
-
-        {/* NAVEGACIÓN MÓVIL */}
         <div className="grid grid-cols-4 gap-1 p-1 bg-slate-950 rounded-lg border border-slate-800/80 mb-3 text-center">
-          <button
-            onClick={() => setActiveTab('predictions')}
-            className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${
-              activeTab === 'predictions' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            PRONÓSTICOS
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${
-              activeTab === 'leaderboard' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            TABLA Y POZO
-          </button>
-          <button
-            onClick={() => setActiveTab('matrix')}
-            className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${
-              activeTab === 'matrix' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            COMPARAR
-          </button>
-          <button
-            onClick={() => setActiveTab('admin')}
-            className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${
-              activeTab === 'admin' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            ADMINISTRA
-          </button>
+          <button onClick={() => setActiveTab('predictions')} className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${activeTab === 'predictions' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>PRONÓSTICOS</button>
+          <button onClick={() => setActiveTab('leaderboard')} className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${activeTab === 'leaderboard' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>TABLA Y POZO</button>
+          <button onClick={() => setActiveTab('matrix')} className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${activeTab === 'matrix' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>COMPARAR</button>
+          <button onClick={() => setActiveTab('admin')} className={`py-2 px-0.5 rounded-md text-[9px] font-black tracking-tight transition ${activeTab === 'admin' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'}`}>ADMINISTRA</button>
         </div>
 
-        {/* TOAST SYSTEM */}
         {toast && (
           <div className="bg-slate-950 text-emerald-400 border border-slate-850 text-[11px] font-bold p-2 text-center rounded-lg mb-3 shadow-md animate-fade-in">
             📢 {toast.message}
           </div>
         )}
 
-        {/* ALERTA DE CIERRES PRÓXIMOS */}
         {upcomingClosures.length > 0 && (
           <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 mb-3 flex flex-col sm:flex-row items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-rose-400 animate-bounce" />
               <div>
                 <h4 className="text-xs font-black text-white uppercase">Cierres Críticos de Pronósticos</h4>
-                <p className="text-[10px] text-slate-400">Hay partidos próximos a iniciarse en menos de 3 horas. Pronósticos se cerrarán de forma automática.</p>
+                <p className="text-[10px] text-slate-400">Hay partidos próximos a iniciarse en menos de 3 horas.</p>
               </div>
             </div>
             <div className="flex gap-1.5 flex-wrap">
@@ -887,8 +828,6 @@ export default function App() {
 
                 return (
                   <div key={match.id} className="bg-slate-900/60 rounded-xl border border-slate-800 p-3 flex flex-col justify-between">
-                    
-                    {/* Encabezado con formato de fecha dd/mm/yyyy */}
                     <div className="flex justify-between items-center text-[10px] border-b border-slate-850 pb-1.5 mb-2.5">
                       <span className="font-mono text-slate-400 font-semibold">{formatMatchDate(match.date)}</span>
                       {isLocked ? (
@@ -900,14 +839,14 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Fila del juego */}
                     <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1 flex-1 justify-end">
+                      
+                      {/* LADO LOCAL (CON IMAGEN DE BANDERA) */}
+                      <div className="flex items-center gap-2 flex-1 justify-end">
                         <span className="text-[11px] font-bold text-slate-100 truncate">{match.homeTeam}</span>
-                        <span className="text-lg">{match.homeFlag}</span>
+                        <img src={`https://flagcdn.com/w40/${match.homeFlag}.png`} alt={match.homeTeam} className="w-6 h-4 object-cover rounded-sm shadow-sm" onError={(e) => e.target.style.display = 'none'} />
                       </div>
 
-                      {/* Inputs de Marcador */}
                       <div className="flex items-center gap-1">
                         <input
                           type="text"
@@ -915,9 +854,7 @@ export default function App() {
                           value={pred.home !== undefined ? pred.home : ''}
                           onChange={(e) => handlePredictionChange(match.id, 'home', e.target.value)}
                           disabled={isLocked || !esMio}
-                          className={`w-8 h-8 text-center text-xs font-black rounded-md focus:outline-none ${
-                            !esMio ? 'bg-slate-950/40 text-slate-500 border border-slate-850' : 'bg-slate-950 text-emerald-400 border border-slate-700'
-                          }`}
+                          className={`w-8 h-8 text-center text-xs font-black rounded-md focus:outline-none ${!esMio ? 'bg-slate-950/40 text-slate-500 border border-slate-850' : 'bg-slate-950 text-emerald-400 border border-slate-700'}`}
                           placeholder="-"
                         />
                         <span className="text-slate-500 font-bold">:</span>
@@ -927,20 +864,19 @@ export default function App() {
                           value={pred.away !== undefined ? pred.away : ''}
                           onChange={(e) => handlePredictionChange(match.id, 'away', e.target.value)}
                           disabled={isLocked || !esMio}
-                          className={`w-8 h-8 text-center text-xs font-black rounded-md focus:outline-none ${
-                            !esMio ? 'bg-slate-950/40 text-slate-500 border border-slate-850' : 'bg-slate-950 text-emerald-400 border border-slate-700'
-                          }`}
+                          className={`w-8 h-8 text-center text-xs font-black rounded-md focus:outline-none ${!esMio ? 'bg-slate-950/40 text-slate-500 border border-slate-850' : 'bg-slate-950 text-emerald-400 border border-slate-700'}`}
                           placeholder="-"
                         />
                       </div>
 
-                      <div className="flex items-center gap-1 flex-1 justify-start">
-                        <span className="text-lg">{match.awayFlag}</span>
+                      {/* LADO VISITANTE (CON IMAGEN DE BANDERA) */}
+                      <div className="flex items-center gap-2 flex-1 justify-start">
+                        <img src={`https://flagcdn.com/w40/${match.awayFlag}.png`} alt={match.awayTeam} className="w-6 h-4 object-cover rounded-sm shadow-sm" onError={(e) => e.target.style.display = 'none'} />
                         <span className="text-[11px] font-bold text-slate-100 truncate">{match.awayTeam}</span>
                       </div>
+
                     </div>
 
-                    {/* Marcador Real y Puntos */}
                     {hasRealResult && (
                       <div className="mt-2.5 pt-1.5 border-t border-slate-850 flex justify-between items-center text-[10px]">
                         <span className="text-slate-500">Resultado Oficial: <strong className="text-slate-300 font-mono">{match.realHome}-{match.realAway}</strong></span>
@@ -949,7 +885,6 @@ export default function App() {
                         </span>
                       </div>
                     )}
-
                   </div>
                 );
               })}
@@ -960,34 +895,26 @@ export default function App() {
         {/* TAB 2: TABLA Y POZO */}
         {activeTab === 'leaderboard' && (
           <div className="space-y-4">
-            
-            {/* Cuadro de Premiación */}
             <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5">
               <h3 className="text-[10px] font-black text-amber-400 uppercase tracking-wider mb-2.5 flex items-center gap-1">
                 <Award className="w-3.5 h-3.5" /> Bolsa de Premios Acumulada SPD (70% / 20% / 10%)
               </h3>
-
               <div className="grid grid-cols-3 gap-1.5">
                 <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg text-center">
-                  <span className="text-[8px] text-amber-400 font-bold block">🥇 1ER LUGAR (70%)</span>
+                  <span className="text-[8px] text-amber-400 font-bold block">🥇 1ER LUGAR</span>
                   <span className="text-xs font-black text-white">Q{premio1erLugar.toFixed(2)}</span>
                 </div>
                 <div className="bg-slate-400/10 border border-slate-400/20 p-2 rounded-lg text-center">
-                  <span className="text-[8px] text-slate-300 font-bold block">🥈 2DO LUGAR (20%)</span>
+                  <span className="text-[8px] text-slate-300 font-bold block">🥈 2DO LUGAR</span>
                   <span className="text-xs font-black text-white">Q{premio2doLugar.toFixed(2)}</span>
                 </div>
                 <div className="bg-amber-700/10 border border-amber-700/20 p-2 rounded-lg text-center">
-                  <span className="text-[8px] text-amber-600 font-bold block">🥉 3ER LUGAR (10%)</span>
+                  <span className="text-[8px] text-amber-600 font-bold block">🥉 3ER LUGAR</span>
                   <span className="text-xs font-black text-white">Q{premio3erLugar.toFixed(2)}</span>
                 </div>
               </div>
-
-              <div className="mt-2.5 text-[9px] text-slate-500 text-center bg-slate-900 py-1 rounded">
-                * Pozo calculado en base a <strong className="text-emerald-400">{pagadosCount} amigos pagados</strong> de Q50.00 cada uno.
-              </div>
             </div>
 
-            {/* Tabla de clasificación */}
             <div className="bg-slate-950/60 rounded-xl border border-slate-800 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
@@ -1003,32 +930,19 @@ export default function App() {
                   <tbody className="divide-y divide-slate-800/50">
                     {sortedLeaderboard.map((u, idx) => (
                       <tr key={u.id} className="hover:bg-slate-850/40 transition">
-                        <td className="py-3 px-3 text-center font-bold">
-                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
-                        </td>
-                        <td className="py-3 px-3 font-semibold text-slate-100 truncate max-w-[120px]">
-                          {u.name}
-                        </td>
+                        <td className="py-3 px-3 text-center font-bold">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</td>
+                        <td className="py-3 px-3 font-semibold text-slate-100 truncate max-w-[120px]">{u.name}</td>
                         <td className="py-3 px-3 text-center">
-                          {u.paid ? (
-                            <span className="text-[8px] bg-emerald-500/10 text-emerald-400 py-0.5 px-1.5 rounded font-black border border-emerald-500/20">Q60 ✓</span>
-                          ) : (
-                            <span className="text-[8px] bg-amber-500/10 text-amber-400 py-0.5 px-1.5 rounded font-black border border-amber-500/20">PEND ✗</span>
-                          )}
+                          {u.paid ? <span className="text-[8px] bg-emerald-500/10 text-emerald-400 py-0.5 px-1.5 rounded font-black border border-emerald-500/20">Q60 ✓</span> : <span className="text-[8px] bg-amber-500/10 text-amber-400 py-0.5 px-1.5 rounded font-black border border-amber-500/20">PEND ✗</span>}
                         </td>
-                        <td className="py-3 px-3 text-center font-mono text-slate-400">
-                          {u.stats.exacts}
-                        </td>
-                        <td className="py-3 px-3 text-right font-black text-emerald-400">
-                          {u.stats.total} pts
-                        </td>
+                        <td className="py-3 px-3 text-center font-mono text-slate-400">{u.stats.exacts}</td>
+                        <td className="py-3 px-3 text-right font-black text-emerald-400">{u.stats.total} pts</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
-
           </div>
         )}
 
@@ -1055,7 +969,12 @@ export default function App() {
                     return (
                       <tr key={match.id} className="hover:bg-slate-850/20 transition">
                         <td className="py-3 px-3 font-bold text-slate-200">
-                          {match.homeFlag} vs {match.awayFlag}
+                          {/* COMPARATIVA CON BANDERITAS */}
+                          <div className="flex items-center gap-1.5">
+                            <img src={`https://flagcdn.com/w20/${match.homeFlag}.png`} className="w-4 h-3 object-cover rounded-sm shadow-sm" alt="" />
+                            <span className="text-[10px]">vs</span>
+                            <img src={`https://flagcdn.com/w20/${match.awayFlag}.png`} className="w-4 h-3 object-cover rounded-sm shadow-sm" alt="" />
+                          </div>
                         </td>
                         <td className="py-3 px-3 text-center bg-slate-950 font-bold">
                           {hasRealResult ? `${match.realHome}-${match.realAway}` : 'PEND'}
@@ -1091,37 +1010,21 @@ export default function App() {
         {activeTab === 'admin' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
-            {/* Gestión de accesos por correos de Google (LISTA BLANCA) */}
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
               <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Control de Acceso (Auditoría)
+                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Control de Acceso
               </h3>
               <p className="text-[10px] text-slate-400 mb-3 leading-normal">
-                Escribe el correo de Google de tu amigo para concederle acceso a la aplicación. Las reglas de Firebase bloquearán a cualquiera que no esté en esta lista.
+                Escribe el correo de Google de tu amigo para concederle acceso a la aplicación.
               </p>
 
               {esAdministrador ? (
                 <form onSubmit={handleAutorizarEmail} className="space-y-3 mb-4">
-                  <input
-                    type="email"
-                    placeholder="ejemplo@gmail.com"
-                    value={nuevoCorreoAutorizar}
-                    onChange={(e) => setNuevoCorreoAutorizar(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 py-1.5 px-3 rounded-lg text-xs text-white placeholder-slate-600"
-                    required
-                  />
-                  
+                  <input type="email" placeholder="ejemplo@gmail.com" value={nuevoCorreoAutorizar} onChange={(e) => setNuevoCorreoAutorizar(e.target.value)} className="w-full bg-slate-950 border border-slate-700 py-1.5 px-3 rounded-lg text-xs text-white placeholder-slate-600" required />
                   <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="newUserPaid"
-                      checked={newUserPaid}
-                      onChange={(e) => setNewUserPaid(e.target.checked)}
-                      className="rounded text-emerald-500 bg-slate-950 border-slate-700 w-3.5 h-3.5"
-                    />
+                    <input type="checkbox" id="newUserPaid" checked={newUserPaid} onChange={(e) => setNewUserPaid(e.target.checked)} className="rounded text-emerald-500 bg-slate-950 border-slate-700 w-3.5 h-3.5" />
                     <label htmlFor="newUserPaid" className="text-[10px] text-slate-300">¿Pagó los Q60 de inmediato?</label>
                   </div>
-
                   <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black py-1.5 rounded-lg transition uppercase">
                     Autorizar Correo Google
                   </button>
@@ -1132,7 +1035,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* Listado de correos autorizados actualmente */}
               <div className="border-t border-slate-800 pt-3">
                 <span className="text-[9px] text-slate-400 font-bold block mb-2">Correos Autorizados en Firebase:</span>
                 <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
@@ -1140,12 +1042,7 @@ export default function App() {
                     <div key={item.id} className="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-850 text-[11px]">
                       <span className="truncate max-w-[140px] text-slate-300">{item.email}</span>
                       {esAdministrador ? (
-                        <button
-                          onClick={() => handleTogglePayment(item.id)}
-                          className={`text-[9px] px-2 py-0.5 rounded font-black ${
-                            item.paid ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                          }`}
-                        >
+                        <button onClick={() => handleTogglePayment(item.id)} className={`text-[9px] px-2 py-0.5 rounded font-black ${item.paid ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
                           {item.paid ? 'Q60 ✓' : 'Cobrar'}
                         </button>
                       ) : (
@@ -1157,35 +1054,27 @@ export default function App() {
               </div>
             </div>
 
-            {/* Marcadores Oficiales e Ingreso de encuentros (Admin) */}
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 lg:col-span-2 space-y-4">
               <div>
                 <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2.5 flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" /> Marcadores Oficiales Mundial 2026
+                  <CheckCircle className="w-4 h-4 text-emerald-400" /> Marcadores Oficiales
                 </h3>
                 
                 <div className="space-y-2">
                   {matches.map(match => (
                     <div key={match.id} className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between gap-2 text-xs">
-                      <span className="font-semibold truncate max-w-[150px]">{match.homeFlag} {match.homeTeam} vs {match.awayTeam} {match.awayFlag}</span>
+                      
+                      {/* BANDERITAS EN EL ADMIN PANEL */}
+                      <div className="flex items-center gap-1.5 font-semibold truncate max-w-[150px]">
+                        <img src={`https://flagcdn.com/w20/${match.homeFlag}.png`} className="w-4 h-3 rounded-sm" alt="" onError={(e) => e.target.style.display = 'none'} />
+                        <span className="truncate">{match.homeTeam} vs {match.awayTeam}</span>
+                        <img src={`https://flagcdn.com/w20/${match.awayFlag}.png`} className="w-4 h-3 rounded-sm" alt="" onError={(e) => e.target.style.display = 'none'} />
+                      </div>
+
                       <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          placeholder="L"
-                          value={match.realHome === null ? '' : match.realHome}
-                          onChange={(e) => handleRealScoreChange(match.id, 'home', e.target.value)}
-                          disabled={!esAdministrador}
-                          className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded font-bold text-emerald-400"
-                        />
+                        <input type="number" placeholder="L" value={match.realHome === null ? '' : match.realHome} onChange={(e) => handleRealScoreChange(match.id, 'home', e.target.value)} disabled={!esAdministrador} className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded font-bold text-emerald-400" />
                         <span>:</span>
-                        <input
-                          type="number"
-                          placeholder="V"
-                          value={match.realAway === null ? '' : match.realAway}
-                          onChange={(e) => handleRealScoreChange(match.id, 'away', e.target.value)}
-                          disabled={!esAdministrador}
-                          className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded font-bold text-emerald-400"
-                        />
+                        <input type="number" placeholder="V" value={match.realAway === null ? '' : match.realAway} onChange={(e) => handleRealScoreChange(match.id, 'away', e.target.value)} disabled={!esAdministrador} className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded font-bold text-emerald-400" />
                         {esAdministrador && (
                           <button onClick={() => handleDeleteMatch(match.id)} className="text-slate-500 hover:text-rose-400 ml-1">
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1197,65 +1086,26 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Crear Partido (Admin) */}
+              {/* Crear Partido (Admin) - NUEVOS PLACEHOLDERS DE TEXTO PARA BANDERAS */}
               {esAdministrador && (
                 <div className="border-t border-slate-800 pt-3">
                   <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
                   <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
-                    <input
-                      type="text"
-                      placeholder="Local"
-                      value={newMatch.homeTeam}
-                      onChange={(e) => setNewMatch({...newMatch, homeTeam: e.target.value})}
-                      className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Visitante"
-                      value={newMatch.awayTeam}
-                      onChange={(e) => setNewMatch({...newMatch, awayTeam: e.target.value})}
-                      className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Emoji Bandera L"
-                      value={newMatch.homeFlag}
-                      onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value})}
-                      className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Emoji Bandera V"
-                      value={newMatch.awayFlag}
-                      onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value})}
-                      className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Estadio / Sede"
-                      value={newMatch.venue}
-                      onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})}
-                      className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white"
-                      required
-                    />
-                    <input
-                      type="datetime-local"
-                      value={newMatch.date}
-                      onChange={(e) => setNewMatch({...newMatch, date: e.target.value})}
-                      className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white"
-                      required
-                    />
-                    <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase">
-                      Añadir Encuentro
-                    </button>
+                    <input type="text" placeholder="Local" value={newMatch.homeTeam} onChange={(e) => setNewMatch({...newMatch, homeTeam: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
+                    <input type="text" placeholder="Visitante" value={newMatch.awayTeam} onChange={(e) => setNewMatch({...newMatch, awayTeam: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
+                    
+                    {/* INPUTS MODIFICADOS PARA BANDERAS (ej. mx, ar, br) */}
+                    <input type="text" placeholder="Cód. País L (ej. mx, ar)" value={newMatch.homeFlag} onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" />
+                    <input type="text" placeholder="Cód. País V (ej. us, br)" value={newMatch.awayFlag} onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" />
+                    
+                    <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
+                    <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
+                    <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase">Añadir Encuentro</button>
                   </form>
                 </div>
               )}
 
             </div>
-
           </div>
         )}
 
