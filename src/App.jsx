@@ -1233,7 +1233,7 @@ useEffect(() => {
                           </button>
 ))}
                 </div>
-              </div>
+              
 
 {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
 {esAdministrador && (
