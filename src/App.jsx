@@ -907,7 +907,8 @@ useEffect(() => {
                       ) : (
                         <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded text-[8px]">✓ EDITABLE</span>
                       )}
-                    </div>
+                    </div>);
+})}
 
                     <div className="flex items-center justify-between gap-1">
                       
