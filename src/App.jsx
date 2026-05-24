@@ -1293,8 +1293,6 @@ useEffect(() => {
     </form>
 </div>
   
-
-</div>
 </main>
 
       <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
