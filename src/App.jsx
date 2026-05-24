@@ -1079,15 +1079,21 @@ useEffect(() => {
         {/* TAB 4: ADMINISTRACIÓN */}
 {activeTab === 'admin' && (
   <div className="space-y-6">
-    
     {/* 1. CONTROL DE ACCESO */}
     <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
       <h3 className="text-xs font-black text-white uppercase flex items-center gap-2 mb-3">
-        <ShieldCheck className="w-4 h-4 text-emerald-400" /> Control de Acceso
+        Control de Acceso
       </h3>
       {esAdministrador ? (
         <form onSubmit={handleAutorizarEmail} className="flex gap-2">
-          <input type="email" placeholder="correo@gmail.com" value={nuevoCorreoAutorizar} onChange={(e) => setNuevoCorreoAutorizar(e.target.value)} className="flex-1 bg-slate-950 border border-slate-700 p-2 rounded text-xs text-white" required />
+          <input 
+            type="email" 
+            placeholder="correo@gmail.com" 
+            value={nuevoCorreoAutorizar} 
+            onChange={(e) => setNuevoCorreoAutorizar(e.target.value)} 
+            className="flex-1 bg-slate-950 border border-slate-700 p-2 rounded text-xs text-white" 
+            required 
+          />
           <button type="submit" className="bg-emerald-600 px-4 py-2 rounded text-xs font-black text-white hover:bg-emerald-500">AUTORIZAR</button>
         </form>
       ) : (
@@ -1095,12 +1101,12 @@ useEffect(() => {
       )}
     </div>
 
-    {/* 2. GESTIÓN DE CATÁLOGOS */}
+    {/* 2. GESTIÓN DE EQUIPOS Y SEDES */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       
-      {/* Equipos */}
+      {/* Sección Equipos */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
-        <h3 className="text-xs font-black text-emerald-400 uppercase">Equipos ({teams.length})</h3>
+        <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos ({teams.length})</h3>
         <input id="nName" placeholder="Nombre (ej. Brasil)" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
         <div className="flex gap-2">
           <input id="nCode" placeholder="Cód (br)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
@@ -1112,43 +1118,49 @@ useEffect(() => {
             const codigo = document.getElementById('nCode').value;
             const grupo = document.getElementById('nGroup').value;
             if(nombre && codigo) {
-              await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { nombre, codigo: codigo.toLowerCase(), grupo });
-              document.getElementById('nName').value = ''; document.getElementById('nCode').value = ''; document.getElementById('nGroup').value = '';
+              try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { nombre, codigo: codigo.toLowerCase(), grupo });
+                document.getElementById('nName').value = ''; document.getElementById('nCode').value = ''; document.getElementById('nGroup').value = '';
+              } catch (e) {
+                console.error("Error al guardar: ", e);
+              }
             }
           }}
           className="w-full bg-emerald-600 py-2 rounded text-white font-black text-xs hover:bg-emerald-500"
         >+ AGREGAR EQUIPO</button>
 
-        {/* LISTA DE EQUIPOS */}
         <div className="mt-4 max-h-40 overflow-y-auto space-y-1 border-t border-slate-800 pt-2">
-          {teams.map(t => (
-            <div key={t.id} className="flex justify-between text-[10px] bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
-              <span>{t.nombre} ({t.codigo.toUpperCase()})</span>
-              <span>Grupo {t.grupo}</span>
+          {teams && teams.map((t, idx) => (
+            <div key={idx} className="flex justify-between text-[10px] bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
+              <span>{t.nombre} ({t.codigo?.toUpperCase()})</span>
+              <span>{t.grupo}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Sedes */}
+      {/* Sección Sedes */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
-        <h3 className="text-xs font-black text-blue-400 uppercase">Sedes ({venues.length})</h3>
+        <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
         <input id="nVenue" placeholder="Nombre de la Sede" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
         <button 
           onClick={async () => {
             const sede = document.getElementById('nVenue').value;
             if(sede) {
-              await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { nombre: sede });
-              document.getElementById('nVenue').value = '';
+              try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { nombre: sede });
+                document.getElementById('nVenue').value = '';
+              } catch (e) {
+                console.error("Error al guardar: ", e);
+              }
             }
           }}
           className="w-full bg-blue-600 py-2 rounded text-white font-black text-xs hover:bg-blue-500"
         >+ AGREGAR SEDE</button>
 
-        {/* LISTA DE SEDES */}
         <div className="mt-4 max-h-40 overflow-y-auto space-y-1 border-t border-slate-800 pt-2">
-          {venues.map(v => (
-            <div key={v.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
+          {venues && venues.map((v, idx) => (
+            <div key={idx} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
               {v.nombre}
             </div>
           ))}
