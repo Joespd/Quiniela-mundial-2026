@@ -1134,31 +1134,51 @@ useEffect(() => {
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
   
   {/* GESTIÓN DE EQUIPOS */}
-  <div className="space-y-4">
-    <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos ({teams.length})</h3>
-    
-    {/* Formulario para agregar */}
-    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
-      <input id="newTeamName" placeholder="Nombre Equipo" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
-      <div className="flex gap-2">
-        <input id="newTeamCode" placeholder="Código (ej. BRA)" className="flex-1 bg-slate-950 text-white p-2 rounded text-xs" />
-        <input id="newTeamGroup" placeholder="Grupo" className="w-16 bg-slate-950 text-white p-2 rounded text-xs" />
-      </div>
-      <button 
-        onClick={async () => {
-          const nombre = document.getElementById('newTeamName').value;
-          const codigo = document.getElementById('newTeamCode').value;
-          const grupo = document.getElementById('newTeamGroup').value;
-          if(nombre && codigo) {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { Nombre: nombre, Código: codigo, Grupo: grupo });
-            document.getElementById('newTeamName').value = '';
-            document.getElementById('newTeamCode').value = '';
-          }
-        }}
-        className="w-full bg-emerald-600 py-2 rounded text-white font-bold text-xs hover:bg-emerald-500"
-      >+ Agregar Equipo</button>
+  {/* --- PANEL DE GESTIÓN DE EQUIPOS (PEGA ESTO DENTRO DE TU TAB ADMIN) --- */}
+<div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 mt-4">
+  <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos</h3>
+  
+  <div className="space-y-2">
+    <input 
+      type="text" 
+      id="inputName" 
+      placeholder="Nombre (ej. Brasil)" 
+      className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" 
+    />
+    <div className="flex gap-2">
+      <input type="text" id="inputCode" placeholder="Código (br)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
+      <input type="text" id="inputGroup" placeholder="Grupo (A)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
     </div>
-
+    
+    <button 
+      onClick={async () => {
+        const nombre = document.getElementById('inputName').value;
+        const codigo = document.getElementById('inputCode').value;
+        const grupo = document.getElementById('inputGroup').value;
+        
+        if (nombre && codigo) {
+          try {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), {
+              Nombre: nombre,
+              Código: codigo.toLowerCase(),
+              Grupo: grupo
+            });
+            // Limpiar campos
+            document.getElementById('inputName').value = '';
+            document.getElementById('inputCode').value = '';
+            document.getElementById('inputGroup').value = '';
+          } catch (e) {
+            console.error("Error: ", e);
+          }
+        }
+      }}
+      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2 rounded-lg text-xs transition-all"
+    >
+      + AGREGAR EQUIPO
+    </button>
+  </div>
+</div>
+  
     {/* Lista */}
     <div className="max-h-40 overflow-y-auto space-y-1">
       {teams.map(t => (
