@@ -1132,7 +1132,7 @@ useEffect(() => {
                 </h3>
 
 
-{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
+{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
   
   {/* GESTIÓN DE EQUIPOS */}
@@ -1232,13 +1232,10 @@ useEffect(() => {
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+</div>
+      </div>
+    ))}
 
-              {/* Crear Partido (Admin) - NUEVOS PLACEHOLDERS CON DICCIONARIO INTELIGENTE */}
 {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
 {esAdministrador && (
   <div className="border-t border-slate-800 pt-3">
@@ -1298,7 +1295,6 @@ useEffect(() => {
       <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
     </form>
   </div>
-            </div>
 )}
 
 </main>
