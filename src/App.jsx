@@ -1134,7 +1134,7 @@ useEffect(() => {
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
   
   {/* GESTIÓN DE EQUIPOS */}
-  {/* --- PANEL DE GESTIÓN DE EQUIPOS (PEGA ESTO DENTRO DE TU TAB ADMIN) --- */}
+  {/* --- PANEL DE GESTIÓN DE EQUIPOS  --- */}
 <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 mt-4">
   <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos</h3>
   
@@ -1152,72 +1152,33 @@ useEffect(() => {
     
     <button 
       onClick={async () => {
-        const nombre = document.getElementById('inputName').value;
-        const codigo = document.getElementById('inputCode').value;
-        const grupo = document.getElementById('inputGroup').value;
+        const n = document.getElementById('inputName').value;
+        const c = document.getElementById('inputCode').value;
+        const g = document.getElementById('inputGroup').value;
         
-        if (nombre && codigo) {
+        if (n && c) {
           try {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), {
-              Nombre: nombre,
-              Código: codigo.toLowerCase(),
-              Grupo: grupo
+              Nombre: n,
+              Código: c.toLowerCase(),
+              Grupo: g
             });
-            // Limpiar campos
             document.getElementById('inputName').value = '';
             document.getElementById('inputCode').value = '';
             document.getElementById('inputGroup').value = '';
           } catch (e) {
-            console.error("Error: ", e);
+            console.error("Error:", e);
           }
         }
       }}
-      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2 rounded-lg text-xs transition-all"
+      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2 rounded-lg text-xs"
     >
       + AGREGAR EQUIPO
     </button>
   </div>
 </div>
-  
-    {/* Lista */}
-    <div className="max-h-40 overflow-y-auto space-y-1">
-      {teams.map(t => (
-        <div key={t.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800 flex justify-between">
-          <span>{t.nombre} ({t.codigo})</span>
-          <span className="text-slate-500">G: {t.grupo}</span>
-        </div>
-      ))}
-    </div>
-  </div>
+{/* --- FIN DEL PANEL --- */}
 
-  {/* GESTIÓN DE SEDES */}
-  <div className="space-y-4">
-    <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
-    
-    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
-      <input id="newVenueName" placeholder="Nombre de la Sede" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
-      <button 
-        onClick={async () => {
-          const nombre = document.getElementById('newVenueName').value;
-          if(nombre) {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { Sede: nombre });
-            document.getElementById('newVenueName').value = '';
-          }
-        }}
-        className="w-full bg-blue-600 py-2 rounded text-white font-bold text-xs hover:bg-blue-500"
-      >+ Agregar Sede</button>
-    </div>
-
-    <div className="max-h-40 overflow-y-auto space-y-1">
-      {venues.map(v => (
-        <div key={v.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
-          {v.nombre}
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
-{/* --- FIN SECCIÓN CATÁLOGOS --- */}
 
 
                 <div className="space-y-2">
