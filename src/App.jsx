@@ -1239,30 +1239,67 @@ useEffect(() => {
               </div>
 
               {/* Crear Partido (Admin) - NUEVOS PLACEHOLDERS CON DICCIONARIO INTELIGENTE */}
-              {esAdministrador && (
-                <div className="border-t border-slate-800 pt-3">
-                  <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
-                  <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
-                    
-                    {/* Al escribir aquí, la bandera se rellena sola */}
-                    <input type="text" placeholder="Local (Ej. Brasil)" value={newMatch.homeTeam} onChange={(e) => handleTeamChange('home', e.target.value)} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
-                    <input type="text" placeholder="Visitante (Ej. España)" value={newMatch.awayTeam} onChange={(e) => handleTeamChange('away', e.target.value)} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
-                    
-                    {/* Estos inputs se rellenan automáticamente, pero puedes editarlos si quieres */}
-                    <input type="text" placeholder="Cód. País L (ej. br)" value={newMatch.homeFlag} onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold" />
-                    <input type="text" placeholder="Cód. País V (ej. es)" value={newMatch.awayFlag} onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold" />
-                    
-                    <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
-                    <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
-                    <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
-                  </form>
-                </div>
-              )}
+    {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
+{esAdministrador && (
+  <div className="border-t border-slate-800 pt-3">
+    <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
+    <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
+      
+      {/* SELECT PARA EQUIPO LOCAL */}
+      <select 
+        value={newMatch.homeTeam} 
+        onChange={(e) => {
+          const selectedTeam = teams.find(t => t.nombre === e.target.value);
+          if (selectedTeam) {
+            setNewMatch({
+              ...newMatch, 
+              homeTeam: selectedTeam.nombre, 
+              homeFlag: selectedTeam.codigo.toLowerCase()
+            });
+          }
+        }} 
+        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
+        required
+      >
+        <option value="">Selecciona Local</option>
+        {teams.map(t => (
+          <option key={t.id} value={t.nombre}>{t.nombre}</option>
+        ))}
+      </select>
 
-            </div>
-          </div>
-        )}
-
+      {/* SELECT PARA EQUIPO VISITANTE */}
+      <select 
+        value={newMatch.awayTeam} 
+        onChange={(e) => {
+          const selectedTeam = teams.find(t => t.nombre === e.target.value);
+          if (selectedTeam) {
+            setNewMatch({
+              ...newMatch, 
+              awayTeam: selectedTeam.nombre, 
+              awayFlag: selectedTeam.codigo.toLowerCase()
+            });
+          }
+        }} 
+        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
+        required
+      >
+        <option value="">Selecciona Visitante</option>
+        {teams.map(t => (
+          <option key={t.id} value={t.nombre}>{t.nombre}</option>
+        ))}
+      </select>
+      
+      {/* Los códigos de bandera se actualizan automáticamente al elegir el equipo */}
+      <input type="text" readOnly placeholder="Cód. L" value={newMatch.homeFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
+      <input type="text" readOnly placeholder="Cód. V" value={newMatch.awayFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
+      
+      <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
+      <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
+      <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
+    </form>
+  </div>
+)}                    
+  
 
       </main>
 
