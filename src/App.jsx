@@ -1077,67 +1077,183 @@ useEffect(() => {
         )}
 
         {/* TAB 4: ADMINISTRACIÓN */}
-{activeTab === 'admin' && (
-  <div className="p-6 space-y-8 bg-slate-950 min-h-screen text-white">
-    <h2 className="text-2xl font-bold mb-6 border-b border-slate-700 pb-2">Panel de Administración</h2>
+        {/* TAB 4: ADMINISTRACIÓN */}
+        {activeTab === 'admin' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+              <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Control de Acceso
+              </h3>
+              <p className="text-[10px] text-slate-400 mb-3 leading-normal">
+                Escribe el correo de Google de tu amigo para concederle acceso a la aplicación.
+              </p>
 
-    {/* SECCIÓN USUARIOS */}
-    <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-      <h3 className="text-lg font-bold text-blue-400 mb-4">Usuarios del Sistema</h3>
-      <div className="space-y-3">
-        {usuarios.map((u) => (
-          <div key={u.id} className="flex gap-4 items-center bg-slate-950 p-3 rounded-lg border border-slate-800">
-            <input 
-              className="bg-transparent text-white flex-1 outline-none border-b border-slate-700 focus:border-blue-500" 
-              defaultValue={u.username || u.email || ''} 
-              onBlur={async (e) => {
-                try {
-                  await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', u.id), { username: e.target.value });
-                } catch (err) {
-                  console.error("Error actualizando usuario:", err);
-                }
-              }} 
-            />
-            <button 
-              onClick={async () => {
-                if (window.confirm('¿Seguro que deseas eliminar este usuario?')) {
-                  await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', u.id));
-                }
-              }} 
-              className="text-rose-500 hover:text-rose-400 font-bold px-2"
-            >
-              Eliminar
-            </button>
-          </div>
-        ))}
+              {esAdministrador ? (
+                <form onSubmit={handleAutorizarEmail} className="space-y-3 mb-4">
+                  <input type="email" placeholder="ejemplo@gmail.com" value={nuevoCorreoAutorizar} onChange={(e) => setNuevoCorreoAutorizar(e.target.value)} className="w-full bg-slate-950 border border-slate-700 py-1.5 px-3 rounded-lg text-xs text-white placeholder-slate-600" required />
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="newUserPaid" checked={newUserPaid} onChange={(e) => setNewUserPaid(e.target.checked)} className="rounded text-emerald-500 bg-slate-950 border-slate-700 w-3.5 h-3.5" />
+                    <label htmlFor="newUserPaid" className="text-[10px] text-slate-300">¿Pagó los Q60 de inmediato?</label>
+                  </div>
+                  <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black py-1.5 rounded-lg transition uppercase">
+                    Autorizar Correo Google
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg text-[10px] text-rose-300 mb-4">
+                  ❌ Panel de control exclusivo para el Administrador (José).
+                </div>
+              )}
+
+              <div className="border-t border-slate-800 pt-3">
+                <span className="text-[9px] text-slate-400 font-bold block mb-2">Correos Autorizados en Firebase:</span>
+                <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
+                  {autorizados.map(item => (
+                    <div key={item.id} className="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-850 text-[11px]">
+                      <span className="truncate max-w-[140px] text-slate-300">{item.email}</span>
+                      {esAdministrador ? (
+                        <button onClick={() => handleTogglePayment(item.id)} className={`text-[9px] px-2 py-0.5 rounded font-black ${item.paid ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                          {item.paid ? 'Q60 ✓' : 'Cobrar'}
+                        </button>
+                      ) : (
+                        <span className="text-[9px] text-slate-500">{item.paid ? '✓' : '✗'}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 lg:col-span-2 space-y-4">
+              <div>
+                <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2.5 flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" /> Marcadores Oficiales
+                </h3>
+
+
+{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
+  
+  {/* GESTIÓN DE EQUIPOS */}
+  <div className="space-y-4">
+    <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos ({teams.length})</h3>
+    
+    {/* Formulario para agregar */}
+    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
+      <input id="newTeamName" placeholder="Nombre Equipo" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
+      <div className="flex gap-2">
+        <input id="newTeamCode" placeholder="Código (ej. BRA)" className="flex-1 bg-slate-950 text-white p-2 rounded text-xs" />
+        <input id="newTeamGroup" placeholder="Grupo" className="w-16 bg-slate-950 text-white p-2 rounded text-xs" />
       </div>
+      <button 
+        onClick={async () => {
+          const nombre = document.getElementById('newTeamName').value;
+          const codigo = document.getElementById('newTeamCode').value;
+          const grupo = document.getElementById('newTeamGroup').value;
+          if(nombre && codigo) {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { Nombre: nombre, Código: codigo, Grupo: grupo });
+            document.getElementById('newTeamName').value = '';
+            document.getElementById('newTeamCode').value = '';
+          }
+        }}
+        className="w-full bg-emerald-600 py-2 rounded text-white font-bold text-xs hover:bg-emerald-500"
+      >+ Agregar Equipo</button>
     </div>
 
-    {/* SECCIÓN EQUIPOS */}
-    <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-      <h3 className="text-lg font-bold text-green-400 mb-4">Gestión de Equipos</h3>
-      <div className="space-y-2">
-        {teams.map((t) => (
-          <div key={t.id} className="grid grid-cols-4 gap-2 p-3 bg-slate-950 rounded-lg border border-slate-800 items-center">
-            <input className="bg-transparent text-sm outline-none border-b border-slate-800" defaultValue={t.grupo} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { grupo: e.target.value })} />
-            <input className="bg-transparent text-sm outline-none border-b border-slate-800" defaultValue={t.codigo} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { codigo: e.target.value })} />
-            <input className="bg-transparent text-sm outline-none border-b border-slate-800" defaultValue={t.nombre} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { nombre: e.target.value })} />
-            <button 
-              onClick={async () => {
-                if (window.confirm('¿Eliminar equipo?')) {
-                  await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id));
-                }
-              }} 
-              className="text-rose-500 hover:text-rose-400 font-bold"
-            >
-              Eliminar
-            </button>
-          </div>
-        ))}
-      </div>
+    {/* Lista */}
+    <div className="max-h-40 overflow-y-auto space-y-1">
+      {teams.map(t => (
+        <div key={t.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800 flex justify-between">
+          <span>{t.nombre} ({t.codigo})</span>
+          <span className="text-slate-500">G: {t.grupo}</span>
+        </div>
+      ))}
     </div>
   </div>
-)}
+
+  {/* GESTIÓN DE SEDES */}
+  <div className="space-y-4">
+    <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
+    
+    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
+      <input id="newVenueName" placeholder="Nombre de la Sede" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
+      <button 
+        onClick={async () => {
+          const nombre = document.getElementById('newVenueName').value;
+          if(nombre) {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { Sede: nombre });
+            document.getElementById('newVenueName').value = '';
+          }
+        }}
+        className="w-full bg-blue-600 py-2 rounded text-white font-bold text-xs hover:bg-blue-500"
+      >+ Agregar Sede</button>
+    </div>
+
+    <div className="max-h-40 overflow-y-auto space-y-1">
+      {venues.map(v => (
+        <div key={v.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
+          {v.nombre}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+{/* --- FIN SECCIÓN CATÁLOGOS --- */}
+
+
+                <div className="space-y-2">
+                  {matches.map(match => (
+                    <div key={match.id} className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between gap-2 text-xs">
+                      
+                      {/* BANDERITAS EN EL ADMIN PANEL */}
+                      <div className="flex items-center gap-1.5 font-semibold truncate max-w-[150px]">
+                        <img src={`https://flagcdn.com/w20/${match.homeFlag}.png`} className="w-4 h-3 rounded-sm" alt="" onError={(e) => e.target.style.display = 'none'} />
+                        <span className="truncate">{match.homeTeam} vs {match.awayTeam}</span>
+                        <img src={`https://flagcdn.com/w20/${match.awayFlag}.png`} className="w-4 h-3 rounded-sm" alt="" onError={(e) => e.target.style.display = 'none'} />
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" placeholder="L" value={match.realHome === null ? '' : match.realHome} onChange={(e) => handleRealScoreChange(match.id, 'home', e.target.value)} disabled={!esAdministrador} className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded font-bold text-emerald-400" />
+                        <span>:</span>
+                        <input type="number" placeholder="V" value={match.realAway === null ? '' : match.realAway} onChange={(e) => handleRealScoreChange(match.id, 'away', e.target.value)} disabled={!esAdministrador} className="w-9 py-0.5 text-center bg-slate-900 border border-slate-700 rounded font-bold text-emerald-400" />
+                        {esAdministrador && (
+                          <button onClick={() => handleDeleteMatch(match.id)} className="text-slate-500 hover:text-rose-400 ml-1">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Crear Partido (Admin) - NUEVOS PLACEHOLDERS CON DICCIONARIO INTELIGENTE */}
+              {esAdministrador && (
+                <div className="border-t border-slate-800 pt-3">
+                  <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
+                  <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
+                    
+                    {/* Al escribir aquí, la bandera se rellena sola */}
+                    <input type="text" placeholder="Local (Ej. Brasil)" value={newMatch.homeTeam} onChange={(e) => handleTeamChange('home', e.target.value)} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
+                    <input type="text" placeholder="Visitante (Ej. España)" value={newMatch.awayTeam} onChange={(e) => handleTeamChange('away', e.target.value)} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-white" required />
+                    
+                    {/* Estos inputs se rellenan automáticamente, pero puedes editarlos si quieres */}
+                    <input type="text" placeholder="Cód. País L (ej. br)" value={newMatch.homeFlag} onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold" />
+                    <input type="text" placeholder="Cód. País V (ej. es)" value={newMatch.awayFlag} onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold" />
+                    
+                    <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
+                    <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
+                    <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
+                  </form>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+
       </main>
 
       <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
