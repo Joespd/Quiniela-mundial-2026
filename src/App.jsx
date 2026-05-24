@@ -1132,7 +1132,7 @@ useEffect(() => {
                 </h3>
 
 
-{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
+{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
   
   {/* GESTIÓN DE EQUIPOS */}
@@ -1152,23 +1152,32 @@ useEffect(() => {
           const codigo = document.getElementById('newTeamCode').value;
           const grupo = document.getElementById('newTeamGroup').value;
           if(nombre && codigo) {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { Nombre: nombre, Código: codigo, Grupo: grupo });
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { nombre, codigo, grupo });
             document.getElementById('newTeamName').value = '';
             document.getElementById('newTeamCode').value = '';
+            document.getElementById('newTeamGroup').value = '';
           }
         }}
         className="w-full bg-emerald-600 py-2 rounded text-white font-bold text-xs hover:bg-emerald-500"
       >+ Agregar Equipo</button>
     </div>
 
-    {/* Lista */}
-    <div className="max-h-40 overflow-y-auto space-y-1">
-      {teams.map(t => (
-        <div key={t.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800 flex justify-between">
-          <span>{t.nombre} ({t.codigo})</span>
-          <span className="text-slate-500">G: {t.grupo}</span>
-        </div>
-      ))}
+    {/* TABLA DE EQUIPOS */}
+    <div className="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
+      <div className="grid grid-cols-3 gap-2 px-3 py-2 bg-slate-900 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-800">
+        <span>Grupo</span>
+        <span>Código</span>
+        <span>Nombre</span>
+      </div>
+      <div className="max-h-40 overflow-y-auto">
+        {teams.map(t => (
+          <div key={t.id} className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 transition-colors">
+            <span className="font-bold text-emerald-500">{t.grupo}</span>
+            <span className="font-mono">{t.codigo}</span>
+            <span className="truncate">{t.nombre}</span>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 
@@ -1182,7 +1191,7 @@ useEffect(() => {
         onClick={async () => {
           const nombre = document.getElementById('newVenueName').value;
           if(nombre) {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { Sede: nombre });
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { nombre });
             document.getElementById('newVenueName').value = '';
           }
         }}
@@ -1199,6 +1208,7 @@ useEffect(() => {
     </div>
   </div>
 </div>
+              
 {/* --- FIN SECCIÓN CATÁLOGOS --- */}
 
 
