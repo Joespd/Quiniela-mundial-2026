@@ -1078,70 +1078,51 @@ useEffect(() => {
 
         {/* TAB 4: ADMINISTRACIÓN */}
 {activeTab === 'admin' && (
-  <div className="space-y-6">
-    {/* 1. CONTROL DE ACCESO (Email + Nombre de Usuario) */}
-    <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
-      <h3 className="text-xs font-black text-white uppercase mb-3">Autorizar Usuario</h3>
-      {esAdministrador ? (
-        <form onSubmit={handleAutorizarEmail} className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <input 
-            type="text" 
-            placeholder="Nombre de Usuario" 
-            value={nuevoNombreUsuario} 
-            onChange={(e) => setNuevoNombreUsuario(e.target.value)} 
-            className="bg-slate-950 border border-slate-700 p-2 rounded text-xs text-white" 
-            required 
-          />
-          <input 
-            type="email" 
-            placeholder="correo@ejemplo.com" 
-            value={nuevoCorreoAutorizar} 
-            onChange={(e) => setNuevoCorreoAutorizar(e.target.value)} 
-            className="bg-slate-950 border border-slate-700 p-2 rounded text-xs text-white" 
-            required 
-          />
-          <button type="submit" className="bg-emerald-600 rounded text-xs font-black text-white hover:bg-emerald-500">AUTORIZAR</button>
-        </form>
-      ) : (
-        <div className="text-[10px] text-rose-400">Acceso restringido al administrador.</div>
-      )}
+  <div className="p-6 space-y-8 bg-slate-950 min-h-screen">
+    <h2 className="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-2">Panel de Administración</h2>
+
+    {/* SECCIÓN USUARIOS */}
+    <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+      <h3 className="text-lg font-bold text-blue-400 mb-4">Usuarios del Sistema</h3>
+      <div className="space-y-3">
+        {usuarios.map((u) => (
+          <div key={u.id} className="flex gap-4 items-center bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <input className="bg-transparent text-white flex-1 outline-none border-b border-slate-700 focus:border-blue-500" defaultValue={u.username} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'users', u.id), { username: e.target.value })} placeholder="Usuario" />
+            <input className="bg-transparent text-white flex-1 outline-none border-b border-slate-700 focus:border-blue-500" defaultValue={u.email} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'users', u.id), { email: e.target.value })} placeholder="Email" />
+            <button onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'users', u.id))} className="text-rose-500 hover:text-rose-400 font-bold px-2">X</button>
+          </div>
+        ))}
+      </div>
     </div>
 
-    {/* 2. GESTIÓN DE EQUIPOS */}
-    <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
-      <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos</h3>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <input id="nGroup" placeholder="Grupo (ej. A)" className="bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
-        <input id="nCode" placeholder="Cód (ej. bra)" className="bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
-        <input id="nName" placeholder="Nombre (ej. Brasil)" className="bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
-        <button 
-          onClick={async () => {
-            const nombre = document.getElementById('nName').value;
-            const codigo = document.getElementById('nCode').value;
-            const grupo = document.getElementById('nGroup').value;
-            if(nombre && codigo && grupo) {
-              await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { nombre, codigo: codigo.toLowerCase(), grupo });
-              document.getElementById('nName').value = ''; document.getElementById('nCode').value = ''; document.getElementById('nGroup').value = '';
-            }
-          }}
-          className="bg-emerald-600 text-white font-black text-xs hover:bg-emerald-500 rounded"
-        >AGREGAR</button>
+    {/* SECCIÓN EQUIPOS */}
+    <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+      <h3 className="text-lg font-bold text-green-400 mb-4">Gestión de Equipos</h3>
+      <div className="grid grid-cols-4 gap-2 mb-2 px-2 text-xs text-slate-500 uppercase font-bold">
+        <span>Grupo</span><span>Código</span><span>Nombre</span><span>Acción</span>
       </div>
+      <div className="space-y-2">
+        {teams.map((t) => (
+          <div key={t.id} className="grid grid-cols-4 gap-2 p-3 bg-slate-950 rounded-lg border border-slate-800 items-center">
+            <input className="bg-transparent text-white text-sm outline-none border-b border-slate-800" defaultValue={t.grupo} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { grupo: e.target.value })} />
+            <input className="bg-transparent text-white text-sm outline-none border-b border-slate-800" defaultValue={t.codigo} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { codigo: e.target.value })} />
+            <input className="bg-transparent text-white text-sm outline-none border-b border-slate-800" defaultValue={t.nombre} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id), { nombre: e.target.value })} />
+            <button onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', t.id))} className="text-rose-500 hover:text-rose-400 font-bold">Eliminar</button>
+          </div>
+        ))}
+      </div>
+    </div>
 
-      {/* TABLA DE EQUIPOS */}
-      <div className="mt-4 border border-slate-800 rounded-lg overflow-hidden">
-        <div className="grid grid-cols-3 bg-slate-950 p-2 text-[10px] text-slate-400 font-bold uppercase border-b border-slate-800">
-          <div>Grupo</div><div>Código</div><div>Nombre</div>
-        </div>
-        <div className="max-h-40 overflow-y-auto">
-          {teams.map((t, idx) => (
-            <div key={idx} className="grid grid-cols-3 p-2 text-xs text-white border-b border-slate-800 hover:bg-slate-800">
-              <div>{t.grupo?.toUpperCase()}</div>
-              <div>{t.codigo?.toUpperCase()}</div>
-              <div>{t.nombre}</div>
-            </div>
-          ))}
-        </div>
+    {/* SECCIÓN SEDES */}
+    <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+      <h3 className="text-lg font-bold text-amber-400 mb-4">Sedes Registradas</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {sedes.map((s) => (
+          <div key={s.id} className="flex gap-2 p-3 bg-slate-950 rounded-lg border border-slate-800 items-center">
+            <input className="bg-transparent text-white flex-1 outline-none border-b border-slate-800" defaultValue={s.nombre} onBlur={(e) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sedes', s.id), { nombre: e.target.value })} />
+            <button onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sedes', s.id))} className="text-rose-500 hover:text-rose-400">Eliminar</button>
+          </div>
+        ))}
       </div>
     </div>
   </div>
