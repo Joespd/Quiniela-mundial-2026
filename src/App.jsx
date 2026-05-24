@@ -1131,27 +1131,66 @@ useEffect(() => {
 
 
 {/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
   
-  {/* Listado y Agregar Equipos */}
-  <div>
-    <h3 className="text-xs font-black text-emerald-400 uppercase mb-3">Gestión de Equipos ({teams.length})</h3>
-    <div className="flex flex-col gap-2 mb-3">
+  {/* GESTIÓN DE EQUIPOS */}
+  <div className="space-y-4">
+    <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos ({teams.length})</h3>
+    
+    {/* Formulario para agregar */}
+    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
+      <input id="newTeamName" placeholder="Nombre Equipo" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
+      <div className="flex gap-2">
+        <input id="newTeamCode" placeholder="Código (ej. BRA)" className="flex-1 bg-slate-950 text-white p-2 rounded text-xs" />
+        <input id="newTeamGroup" placeholder="Grupo" className="w-16 bg-slate-950 text-white p-2 rounded text-xs" />
+      </div>
+      <button 
+        onClick={async () => {
+          const nombre = document.getElementById('newTeamName').value;
+          const codigo = document.getElementById('newTeamCode').value;
+          const grupo = document.getElementById('newTeamGroup').value;
+          if(nombre && codigo) {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { Nombre: nombre, Código: codigo, Grupo: grupo });
+            document.getElementById('newTeamName').value = '';
+            document.getElementById('newTeamCode').value = '';
+          }
+        }}
+        className="w-full bg-emerald-600 py-2 rounded text-white font-bold text-xs hover:bg-emerald-500"
+      >+ Agregar Equipo</button>
+    </div>
+
+    {/* Lista */}
+    <div className="max-h-40 overflow-y-auto space-y-1">
       {teams.map(t => (
-        <div key={t.id} className="text-[10px] bg-slate-900 p-2 rounded border border-slate-800 text-slate-300">
-          {t.nombre} - <span className="text-sky-400">{t.codigo}</span> (Grupo {t.grupo})
+        <div key={t.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800 flex justify-between">
+          <span>{t.nombre} ({t.codigo})</span>
+          <span className="text-slate-500">G: {t.grupo}</span>
         </div>
       ))}
     </div>
-    {/* Nota: Aquí puedes poner los inputs si quieres agregar equipos desde aquí */}
   </div>
 
-  {/* Listado de Sedes */}
-  <div>
-    <h3 className="text-xs font-black text-blue-400 uppercase mb-3">Gestión de Sedes ({venues.length})</h3>
-    <div className="flex flex-col gap-2">
+  {/* GESTIÓN DE SEDES */}
+  <div className="space-y-4">
+    <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
+    
+    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
+      <input id="newVenueName" placeholder="Nombre de la Sede" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
+      <button 
+        onClick={async () => {
+          const nombre = document.getElementById('newVenueName').value;
+          if(nombre) {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { Sede: nombre });
+            document.getElementById('newVenueName').value = '';
+          }
+        }}
+        className="w-full bg-blue-600 py-2 rounded text-white font-bold text-xs hover:bg-blue-500"
+      >+ Agregar Sede</button>
+    </div>
+
+    <div className="max-h-40 overflow-y-auto space-y-1">
       {venues.map(v => (
-        <div key={v.id} className="text-[10px] bg-slate-900 p-2 rounded border border-slate-800 text-slate-300">
+        <div key={v.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
           {v.nombre}
         </div>
       ))}
