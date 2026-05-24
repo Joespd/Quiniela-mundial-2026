@@ -1079,55 +1079,93 @@ useEffect(() => {
         {/* TAB 4: ADMINISTRACIÓN */}
 {activeTab === 'admin' && (
   <div className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+    
+    {/* 1. CONTROL DE ACCESO */}
+    <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+      <h3 className="text-xs font-black text-white uppercase flex items-center gap-2 mb-3">
+        <ShieldCheck className="w-4 h-4 text-emerald-400" /> Control de Acceso
+      </h3>
+      {esAdministrador ? (
+        <form onSubmit={handleAutorizarEmail} className="flex gap-2 mb-4">
+          <input 
+            type="email" 
+            placeholder="correo@gmail.com" 
+            value={nuevoCorreoAutorizar} 
+            onChange={(e) => setNuevoCorreoAutorizar(e.target.value)} 
+            className="flex-1 bg-slate-950 border border-slate-700 p-2 rounded text-xs text-white" 
+            required 
+          />
+          <button type="submit" className="bg-emerald-600 px-4 py-2 rounded text-xs font-black text-white uppercase hover:bg-emerald-500">
+            Autorizar
+          </button>
+        </form>
+      ) : (
+        <div className="bg-rose-500/10 border border-rose-500/20 p-2 rounded text-[10px] text-rose-300">
+          Panel exclusivo para el Administrador.
+        </div>
+      )}
+    </div>
+
+    {/* 2. GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       
-      {/* --- FORMULARIO EQUIPOS --- */}
+      {/* Equipos */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
         <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos</h3>
-        <input type="text" id="inputName" placeholder="Nombre (ej. Brasil)" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
+        <input id="newTeamName" placeholder="Nombre (ej. Brasil)" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
         <div className="flex gap-2">
-          <input type="text" id="inputCode" placeholder="Código (br)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
-          <input type="text" id="inputGroup" placeholder="Grupo (A)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
+          <input id="newTeamCode" placeholder="Código (br)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
+          <input id="newTeamGroup" placeholder="Grupo (A)" className="w-1/2 bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
         </div>
         <button 
           onClick={async () => {
-            const n = document.getElementById('inputName').value;
-            const c = document.getElementById('inputCode').value;
-            const g = document.getElementById('inputGroup').value;
-            if (!n || !c) { alert("Campos obligatorios vacíos"); return; }
-            try {
+            const n = document.getElementById('newTeamName').value;
+            const c = document.getElementById('newTeamCode').value;
+            const g = document.getElementById('newTeamGroup').value;
+            if(n && c) {
               await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { Nombre: n, Código: c.toLowerCase(), Grupo: g });
-              alert("Equipo guardado con éxito");
-              document.getElementById('inputName').value = '';
-              document.getElementById('inputCode').value = '';
-              document.getElementById('inputGroup').value = '';
-            } catch (e) { alert("Error al guardar equipo: " + e.message); }
+              document.getElementById('newTeamName').value = '';
+              document.getElementById('newTeamCode').value = '';
+            }
           }}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2 rounded-lg text-xs"
+          className="w-full bg-emerald-600 py-2 rounded text-white font-black text-xs hover:bg-emerald-500"
         >+ AGREGAR EQUIPO</button>
       </div>
 
-      {/* --- FORMULARIO SEDES --- */}
+      {/* Sedes */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
         <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes</h3>
-        <input type="text" id="inputVenue" placeholder="Nombre de la Sede" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
+        <input id="newVenueName" placeholder="Nombre de la Sede" className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-white text-xs" />
         <button 
           onClick={async () => {
-            const v = document.getElementById('inputVenue').value;
-            if (!v) { alert("Escribe el nombre de la sede"); return; }
-            try {
+            const v = document.getElementById('newVenueName').value;
+            if(v) {
               await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { Sede: v });
-              alert("Sede guardada con éxito");
-              document.getElementById('inputVenue').value = '';
-            } catch (e) { alert("Error al guardar sede: " + e.message); }
+              document.getElementById('newVenueName').value = '';
+            }
           }}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-2 rounded-lg text-xs"
+          className="w-full bg-blue-600 py-2 rounded text-white font-black text-xs hover:bg-blue-500"
         >+ AGREGAR SEDE</button>
       </div>
     </div>
+
+    {/* 3. CREAR PARTIDO (FIXTURE) */}
+    {esAdministrador && (
+      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+        <h3 className="text-xs font-black text-white uppercase mb-4">Crear Partido en Fixture</h3>
+        <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
+          <input type="text" placeholder="Local" value={newMatch.homeTeam} onChange={(e) => handleTeamChange('home', e.target.value)} className="bg-slate-950 border border-slate-700 p-2 rounded text-white" required />
+          <input type="text" placeholder="Visitante" value={newMatch.awayTeam} onChange={(e) => handleTeamChange('away', e.target.value)} className="bg-slate-950 border border-slate-700 p-2 rounded text-white" required />
+          <input type="text" placeholder="Cód. L (ej. br)" value={newMatch.homeFlag} onChange={(e) => setNewMatch({...newMatch, homeFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 p-2 rounded text-emerald-400 font-mono" />
+          <input type="text" placeholder="Cód. V (ej. es)" value={newMatch.awayFlag} onChange={(e) => setNewMatch({...newMatch, awayFlag: e.target.value.toLowerCase()})} className="bg-slate-950 border border-slate-700 p-2 rounded text-emerald-400 font-mono" />
+          <input type="text" placeholder="Estadio" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 p-2 rounded col-span-2 text-white" required />
+          <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 p-2 rounded col-span-2 text-white" required />
+          <button type="submit" className="bg-sky-600 hover:bg-sky-500 text-white font-black py-2 rounded-lg col-span-2 uppercase">Añadir Encuentro</button>
+        </form>
+      </div>
+    )}
   </div>
 )}
-
       </main>
 
       <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
