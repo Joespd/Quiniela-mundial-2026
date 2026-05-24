@@ -263,50 +263,42 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // === (2) CARGA DE DATOS EN TIEMPO REAL DESDE FIRESTORE ===
-  useEffect(() => {
-    if (!currentUser || !db) return;
+// === (2) CARGA DE DATOS EN TIEMPO REAL DESDE FIRESTORE ===
+useEffect(() => {
+  if (!currentUser || !db) return;
 
-    const matchesRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
-    const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-    const autorizadosRef = collection(db, 'artifacts', appId, 'public', 'data', 'autorizados');
+  const matchesRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
+  const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+  const autorizadosRef = collection(db, 'artifacts', appId, 'public', 'data', 'autorizados');
+  const teamsRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
+  const venuesRef = collection(db, 'artifacts', appId, 'public', 'data', 'venues');
 
-    const unsubscribeMatches = onSnapshot(matchesRef, (snapshot) => {
-      const list = [];
-      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      if (list.length > 0) {
-        list.sort((a, b) => new Date(a.date) - new Date(b.date));
-        setMatches(list);
-      } else {
-        SEED_MATCHES.forEach(async (m) => {
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', m.id), m);
-        });
-      }
-    }, (error) => console.error("Error de base de datos en partidos:", error));
+  const unsubscribeMatches = onSnapshot(matchesRef, (snapshot) => {
+    const list = [];
+    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    if (list.length > 0) {
+      list.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setMatches(list);
+    } else {
+      SEED_MATCHES.forEach(async (m) => {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', m.id), m);
+      });
+    }
+  });
 
-    const unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
-      const list = [];
-      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      if (list.length > 0) {
-        setUsers(list);
-      }
-    }, (error) => console.error("Error de base de datos en usuarios:", error));
+  const unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
+    const list = [];
+    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    if (list.length > 0) setUsers(list);
+  });
 
-    const unsubscribeAutorizados = onSnapshot(autorizadosRef, (snapshot) => {
-      const list = [];
-      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      setAutorizados(list);
-    }, (error) => console.error("Error de base de datos en autorizados:", error));
+  const unsubscribeAutorizados = onSnapshot(autorizadosRef, (snapshot) => {
+    const list = [];
+    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    setAutorizados(list);
+  });
 
-    return () => {
-      unsubscribeMatches();
-      unsubscribeUsers();
-      unsubscribeAutorizados();
-    };
-  }, [currentUser]);
-
-// Carga de Equipos (Colección "teams")
-  const unsubTeams = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), (snap) => {
+  const unsubscribeTeams = onSnapshot(teamsRef, (snap) => {
     setTeams(snap.docs.map(d => ({
       id: d.id,
       nombre: d.data().Nombre,
@@ -315,8 +307,7 @@ export default function App() {
     })));
   });
 
-  // Carga de Sedes (Colección "venues")
-  const unsubVenues = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), (snap) => {
+  const unsubscribeVenues = onSnapshot(venuesRef, (snap) => {
     setVenues(snap.docs.map(d => ({
       id: d.id,
       nombre: d.data().Sede
@@ -324,11 +315,13 @@ export default function App() {
   });
 
   return () => {
-    unsubTeams();
-    unsubVenues();
+    unsubscribeMatches();
+    unsubscribeUsers();
+    unsubscribeAutorizados();
+    unsubscribeTeams();
+    unsubscribeVenues();
   };
 }, [currentUser]);
-
 
   // Logins/Logouts
   const handleGoogleLogin = async () => {
