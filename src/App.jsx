@@ -1285,5 +1285,6 @@ export default function App() {
           <p>App SPD • Copa del Mundo 2026 Guatemala</p>
         </footer>
       </div>
-    );
+    </div>
+  );
 }
