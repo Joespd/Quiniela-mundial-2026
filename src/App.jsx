@@ -109,7 +109,6 @@ const SEED_MATCHES = [
 ];
 
 // === DICCIONARIO INTELIGENTE DE PAÍSES A BANDERAS ===
-// Identifica el nombre escrito y busca su código ISO (para automatizar panel de Admin)
 const COUNTRY_CODES = {
   // Norte y Centroamérica
   "méxico": "mx", "mexico": "mx",
@@ -144,11 +143,8 @@ export default function App() {
   const [matches, setMatches] = useState([]);
   const [users, setUsers] = useState([]);
   const [autorizados, setAutorizados] = useState([]);
-
-
-  // === Usuario nombre ===
-  const [teams, setTeams] = useState([]);      // Para la lista de equipos
-  const [venues, setVenues] = useState([]);    // Para la lista de estadios
+  const [teams, setTeams] = useState([]);      
+  const [venues, setVenues] = useState([]);    
   
   // Estados de Sesión de Usuario
   const [currentUser, setCurrentUser] = useState(null); 
@@ -264,67 +260,66 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-// === (2) CARGA DE DATOS EN TIEMPO REAL DESDE FIRESTORE ===
-useEffect(() => {
-  if (!currentUser || !db) return;
+  // === (2) CARGA DE DATOS EN TIEMPO REAL DESDE FIRESTORE ===
+  useEffect(() => {
+    if (!currentUser || !db) return;
 
-  const matchesRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
-  const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-  const autorizadosRef = collection(db, 'artifacts', appId, 'public', 'data', 'autorizados');
-  const teamsRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
-  const venuesRef = collection(db, 'artifacts', appId, 'public', 'data', 'venues');
+    const matchesRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
+    const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+    const autorizadosRef = collection(db, 'artifacts', appId, 'public', 'data', 'autorizados');
+    const teamsRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
+    const venuesRef = collection(db, 'artifacts', appId, 'public', 'data', 'venues');
 
-  const unsubscribeMatches = onSnapshot(matchesRef, (snapshot) => {
-    const list = [];
-    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-    if (list.length > 0) {
-      list.sort((a, b) => new Date(a.date) - new Date(b.date));
-      setMatches(list);
-    } else {
-      SEED_MATCHES.forEach(async (m) => {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', m.id), m);
-      });
-    }
-  });
+    const unsubscribeMatches = onSnapshot(matchesRef, (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      if (list.length > 0) {
+        list.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setMatches(list);
+      } else {
+        SEED_MATCHES.forEach(async (m) => {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', m.id), m);
+        });
+      }
+    });
 
-  const unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
-    const list = [];
-    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-    if (list.length > 0) setUsers(list);
-  });
+    const unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      if (list.length > 0) setUsers(list);
+    });
 
-  const unsubscribeAutorizados = onSnapshot(autorizadosRef, (snapshot) => {
-    const list = [];
-    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-    setAutorizados(list);
-  });
+    const unsubscribeAutorizados = onSnapshot(autorizadosRef, (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      setAutorizados(list);
+    });
 
-  const unsubscribeTeams = onSnapshot(teamsRef, (snap) => {
-    setTeams(snap.docs.map(d => ({
-      id: d.id,
-      nombre: d.data().Nombre,
-      codigo: d.data().Código,
-      grupo: d.data().Grupo
-    })));
-  });
+    const unsubscribeTeams = onSnapshot(teamsRef, (snap) => {
+      setTeams(snap.docs.map(d => ({
+        id: d.id,
+        nombre: d.data().Nombre || d.data().nombre,
+        codigo: d.data().Código || d.data().codigo,
+        grupo: d.data().Grupo || d.data().grupo
+      })));
+    });
 
-  const unsubscribeVenues = onSnapshot(venuesRef, (snap) => {
-    setVenues(snap.docs.map(d => ({
-      id: d.id,
-      nombre: d.data().Sede
-    })));
-  });
+    const unsubscribeVenues = onSnapshot(venuesRef, (snap) => {
+      setVenues(snap.docs.map(d => ({
+        id: d.id,
+        nombre: d.data().Sede || d.data().nombre
+      })));
+    });
 
-  return () => {
-    unsubscribeMatches();
-    unsubscribeUsers();
-    unsubscribeAutorizados();
-    unsubscribeTeams();
-    unsubscribeVenues();
-  };
-}, [currentUser]);
+    return () => {
+      unsubscribeMatches();
+      unsubscribeUsers();
+      unsubscribeAutorizados();
+      unsubscribeTeams();
+      unsubscribeVenues();
+    };
+  }, [currentUser]);
 
-  // Logins/Logouts
   const handleGoogleLogin = async () => {
     try {
       setCargandoAuth(true);
@@ -373,11 +368,9 @@ useEffect(() => {
     const ampm = hours24 >= 12 ? 'p. m.' : 'a. m.';
     const hours12 = hours24 % 12 || 12;
     const minutes = String(d.getMinutes()).padStart(2, '0');
-
     return `${day}/${month}/${year} - ${hours12}:${minutes} ${ampm}`;
   };
 
-  // === LÓGICA DE CÁLCULO DE PUNTOS DE LA OPCIÓN A ===
   const calculateMatchPoints = (predHome, predAway, realHome, realAway) => {
     if (
       predHome === undefined || predAway === undefined || 
@@ -561,23 +554,6 @@ useEffect(() => {
     }
   };
 
-  // Función inteligente para actualizar el código de bandera automáticamente al escribir el equipo
-  const handleTeamChange = (type, value) => {
-    const field = type === 'home' ? 'homeTeam' : 'awayTeam';
-    const flagField = type === 'home' ? 'homeFlag' : 'awayFlag';
-    
-    // Convertir el nombre a minúsculas y buscarlo en el diccionario
-    const normalizedValue = value.toLowerCase().trim();
-    const code = COUNTRY_CODES[normalizedValue];
-
-    setNewMatch(prev => ({
-      ...prev,
-      [field]: value,
-      ...(code ? { [flagField]: code } : {}) // Si encuentra el país, rellena el código de la bandera
-    }));
-  };
-
-  // Añadir un nuevo partido (Admin)
   const handleAddMatch = async (e) => {
     e.preventDefault();
     if (!newMatch.homeTeam || !newMatch.awayTeam || !newMatch.venue) {
@@ -589,7 +565,7 @@ useEffect(() => {
       id: 'm_' + Date.now(),
       homeTeam: newMatch.homeTeam,
       awayTeam: newMatch.awayTeam,
-      homeFlag: newMatch.homeFlag || 'un', // 'un' bandera de UN si está vacío
+      homeFlag: newMatch.homeFlag || 'un', 
       awayFlag: newMatch.awayFlag || 'un',
       venue: newMatch.venue,
       date: newMatch.date,
@@ -636,7 +612,6 @@ useEffect(() => {
   const totalInscritos = users.length;
   const pagadosCount = users.filter(u => u.paid).length;
   const pozoPremiosReal = pagadosCount * costPrize;
-  const cobroServicioReal = pagadosCount * costService;
 
   const premio1erLugar = pozoPremiosReal * 0.70;
   const premio2doLugar = pozoPremiosReal * 0.20;
@@ -907,7 +882,7 @@ useEffect(() => {
                       ) : (
                         <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded text-[8px]">✓ EDITABLE</span>
                       )}
-</div> // Cierra el grid
+                    </div>
 
                     <div className="flex items-center justify-between gap-1">
                       
@@ -952,13 +927,15 @@ useEffect(() => {
                         <span className="text-slate-500">Resultado Oficial: <strong className="text-slate-300 font-mono">{match.realHome}-{match.realAway}</strong></span>
                         <span className="font-extrabold text-emerald-400 bg-emerald-500/15 py-0.5 px-2 rounded-full">
                           +{pointsEarned} Pts
-                          </span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
-      </div>
-    );
-  })} {/* Cierra el .map() */}
-</div> // Cierra el .grid
 
         {/* TAB 2: TABLA Y POZO */}
         {activeTab === 'leaderboard' && (
@@ -1075,7 +1052,6 @@ useEffect(() => {
         )}
 
         {/* TAB 4: ADMINISTRACIÓN */}
-        {/* TAB 4: ADMINISTRACIÓN */}
         {activeTab === 'admin' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
@@ -1129,86 +1105,83 @@ useEffect(() => {
                   <CheckCircle className="w-4 h-4 text-emerald-400" /> Marcadores Oficiales
                 </h3>
 
+                {/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
+                  
+                  {/* GESTIÓN DE EQUIPOS */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos ({teams.length})</h3>
+                    
+                    {/* Formulario para agregar */}
+                    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
+                      <input id="newTeamName" placeholder="Nombre Equipo" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
+                      <div className="flex gap-2">
+                        <input id="newTeamCode" placeholder="Código (ej. BRA)" className="flex-1 bg-slate-950 text-white p-2 rounded text-xs" />
+                        <input id="newTeamGroup" placeholder="Grupo" className="w-16 bg-slate-950 text-white p-2 rounded text-xs" />
+                      </div>
+                      <button 
+                        onClick={async () => {
+                          const nombre = document.getElementById('newTeamName').value;
+                          const codigo = document.getElementById('newTeamCode').value;
+                          const grupo = document.getElementById('newTeamGroup').value;
+                          if(nombre && codigo) {
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { nombre, codigo, grupo });
+                            document.getElementById('newTeamName').value = '';
+                            document.getElementById('newTeamCode').value = '';
+                            document.getElementById('newTeamGroup').value = '';
+                          }
+                        }}
+                        className="w-full bg-emerald-600 py-2 rounded text-white font-bold text-xs hover:bg-emerald-500"
+                      >+ Agregar Equipo</button>
+                    </div>
 
-{/* --- SECCIÓN NUEVA: GESTIÓN DE CATÁLOGOS (EQUIPOS Y SEDES) --- */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 bg-slate-950/40 rounded-xl border border-slate-800">
-  
-  {/* GESTIÓN DE EQUIPOS */}
-  <div className="space-y-4">
-    <h3 className="text-xs font-black text-emerald-400 uppercase">Gestión de Equipos ({teams.length})</h3>
-    
-    {/* Formulario para agregar */}
-    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
-      <input id="newTeamName" placeholder="Nombre Equipo" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
-      <div className="flex gap-2">
-        <input id="newTeamCode" placeholder="Código (ej. BRA)" className="flex-1 bg-slate-950 text-white p-2 rounded text-xs" />
-        <input id="newTeamGroup" placeholder="Grupo" className="w-16 bg-slate-950 text-white p-2 rounded text-xs" />
-      </div>
-      <button 
-        onClick={async () => {
-          const nombre = document.getElementById('newTeamName').value;
-          const codigo = document.getElementById('newTeamCode').value;
-          const grupo = document.getElementById('newTeamGroup').value;
-          if(nombre && codigo) {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'teams'), { nombre, codigo, grupo });
-            document.getElementById('newTeamName').value = '';
-            document.getElementById('newTeamCode').value = '';
-            document.getElementById('newTeamGroup').value = '';
-          }
-        }}
-        className="w-full bg-emerald-600 py-2 rounded text-white font-bold text-xs hover:bg-emerald-500"
-      >+ Agregar Equipo</button>
-    </div>
+                    {/* TABLA DE EQUIPOS */}
+                    <div className="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
+                      <div className="grid grid-cols-3 gap-2 px-3 py-2 bg-slate-900 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-800">
+                        <span>Grupo</span>
+                        <span>Código</span>
+                        <span>Nombre</span>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto">
+                        {teams.map(t => (
+                          <div key={t.id} className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 transition-colors">
+                            <span className="font-bold text-emerald-500">{t.grupo}</span>
+                            <span className="font-mono">{t.codigo}</span>
+                            <span className="truncate">{t.nombre}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-    {/* TABLA DE EQUIPOS */}
-    <div className="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
-      <div className="grid grid-cols-3 gap-2 px-3 py-2 bg-slate-900 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-800">
-        <span>Grupo</span>
-        <span>Código</span>
-        <span>Nombre</span>
-      </div>
-      <div className="max-h-40 overflow-y-auto">
-        {teams.map(t => (
-          <div key={t.id} className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 transition-colors">
-            <span className="font-bold text-emerald-500">{t.grupo}</span>
-            <span className="font-mono">{t.codigo}</span>
-            <span className="truncate">{t.nombre}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
+                  {/* GESTIÓN DE SEDES */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
+                    
+                    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
+                      <input id="newVenueName" placeholder="Nombre de la Sede" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
+                      <button 
+                        onClick={async () => {
+                          const nombre = document.getElementById('newVenueName').value;
+                          if(nombre) {
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { nombre });
+                            document.getElementById('newVenueName').value = '';
+                          }
+                        }}
+                        className="w-full bg-blue-600 py-2 rounded text-white font-bold text-xs hover:bg-blue-500"
+                      >+ Agregar Sede</button>
+                    </div>
 
-  {/* GESTIÓN DE SEDES */}
-  <div className="space-y-4">
-    <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
-    
-    <div className="bg-slate-900 p-3 rounded-lg space-y-2 border border-slate-800">
-      <input id="newVenueName" placeholder="Nombre de la Sede" className="w-full bg-slate-950 text-white p-2 rounded text-xs" />
-      <button 
-        onClick={async () => {
-          const nombre = document.getElementById('newVenueName').value;
-          if(nombre) {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'venues'), { nombre });
-            document.getElementById('newVenueName').value = '';
-          }
-        }}
-        className="w-full bg-blue-600 py-2 rounded text-white font-bold text-xs hover:bg-blue-500"
-      >+ Agregar Sede</button>
-    </div>
-
-    <div className="max-h-40 overflow-y-auto space-y-1">
-      {venues.map(v => (
-        <div key={v.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
-          {v.nombre}
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
-              
-{/* --- FIN SECCIÓN CATÁLOGOS --- */}
-
+                    <div className="max-h-40 overflow-y-auto space-y-1">
+                      {venues.map(v => (
+                        <div key={v.id} className="text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
+                          {v.nombre}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* --- FIN SECCIÓN CATÁLOGOS --- */}
 
                 <div className="space-y-2">
                   {matches.map(match => (
@@ -1229,76 +1202,81 @@ useEffect(() => {
                           <button onClick={() => handleDeleteMatch(match.id)} className="text-slate-500 hover:text-rose-400 ml-1">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
-)}
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              
 
-{/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
-{esAdministrador && (
-  <div className="border-t border-slate-800 pt-3">
-    <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
-    <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
-      
-      {/* SELECT PARA EQUIPO LOCAL */}
-      <select 
-        value={newMatch.homeTeam} 
-        onChange={(e) => {
-          const selectedTeam = teams.find(t => t.nombre === e.target.value);
-          if (selectedTeam) {
-            setNewMatch({
-              ...newMatch, 
-              homeTeam: selectedTeam.nombre, 
-              homeFlag: selectedTeam.codigo.toLowerCase()
-            });
-          }
-        }} 
-        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
-        required
-      >
-        <option value="">Selecciona Local</option>
-        {teams.map(t => (
-          <option key={t.id} value={t.nombre}>{t.nombre}</option>
-        ))}
-      </select>
+                {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
+                {esAdministrador && (
+                  <div className="border-t border-slate-800 pt-3 mt-4">
+                    <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
+                    <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
+                      
+                      {/* SELECT PARA EQUIPO LOCAL */}
+                      <select 
+                        value={newMatch.homeTeam} 
+                        onChange={(e) => {
+                          const selectedTeam = teams.find(t => t.nombre === e.target.value);
+                          if (selectedTeam) {
+                            setNewMatch({
+                              ...newMatch, 
+                              homeTeam: selectedTeam.nombre, 
+                              homeFlag: selectedTeam.codigo.toLowerCase()
+                            });
+                          }
+                        }} 
+                        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
+                        required
+                      >
+                        <option value="">Selecciona Local</option>
+                        {teams.map(t => (
+                          <option key={t.id} value={t.nombre}>{t.nombre}</option>
+                        ))}
+                      </select>
 
-      {/* SELECT PARA EQUIPO VISITANTE */}
-      <select 
-        value={newMatch.awayTeam} 
-        onChange={(e) => {
-          const selectedTeam = teams.find(t => t.nombre === e.target.value);
-          if (selectedTeam) {
-            setNewMatch({
-              ...newMatch, 
-              awayTeam: selectedTeam.nombre, 
-              awayFlag: selectedTeam.codigo.toLowerCase()
-            });
-          }
-        }} 
-        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
-        required
-      >
-        <option value="">Selecciona Visitante</option>
-        {teams.map(t => (
-          <option key={t.id} value={t.nombre}>{t.nombre}</option>
-        ))}
-      </select>
-      
-      {/* Los códigos de bandera se actualizan automáticamente al elegir el equipo */}
-      <input type="text" readOnly placeholder="Cód. L" value={newMatch.homeFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
-      <input type="text" readOnly placeholder="Cód. V" value={newMatch.awayFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
-      
-      <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
-      <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
-      <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
-    </form>
-</div>
-</main>
+                      {/* SELECT PARA EQUIPO VISITANTE */}
+                      <select 
+                        value={newMatch.awayTeam} 
+                        onChange={(e) => {
+                          const selectedTeam = teams.find(t => t.nombre === e.target.value);
+                          if (selectedTeam) {
+                            setNewMatch({
+                              ...newMatch, 
+                              awayTeam: selectedTeam.nombre, 
+                              awayFlag: selectedTeam.codigo.toLowerCase()
+                            });
+                          }
+                        }} 
+                        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
+                        required
+                      >
+                        <option value="">Selecciona Visitante</option>
+                        {teams.map(t => (
+                          <option key={t.id} value={t.nombre}>{t.nombre}</option>
+                        ))}
+                      </select>
+                      
+                      {/* Los códigos de bandera se actualizan automáticamente al elegir el equipo */}
+                      <input type="text" readOnly placeholder="Cód. L" value={newMatch.homeFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
+                      <input type="text" readOnly placeholder="Cód. V" value={newMatch.awayFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
+                      
+                      <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
+                      <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
+                      <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
 
       <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
         <p>App SPD • Copa del Mundo 2026 Guatemala</p>
       </footer>
-</div> {/* Cierra el div que engloba todo */}
-); // Cierra el return
-} // Cierra la función del componente
-
-
+    </div>
+  );
+}
