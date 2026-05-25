@@ -1259,9 +1259,9 @@ export default function App() {
                         required
                       >
                         <option value="">Selecciona Visitante</option>
-                        {teams.map(t => (
-                          <option key={t.id} value={t.nombre}>{t.nombre}</option>
-                        ))}
+                      {teams.map(t => (
+            <option key={t.id} value={t.nombre}>{t.nombre}</option>
+          ))}
                       </select>
                       
                       {/* Los códigos de bandera se actualizan automáticamente al elegir el equipo */}
