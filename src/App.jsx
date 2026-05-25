@@ -1145,25 +1145,21 @@ export default function App() {
                      
 // ... dentro de tu componente, en la sección de la lista:
 <div className="max-h-60 overflow-y-auto">
-  {teams.map((t) => (
-    <div 
-      key={t.id} 
-      className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 items-center"
-    >
-      <span className="font-bold text-emerald-500">{t.grupo}</span>
-      <div className="flex items-center gap-2">
-        <img 
-          src={`https://countryflagsapi.netlify.app/flag/${t.codigo.toUpperCase()}.png`} 
-          alt={t.nombre} 
-          className="w-5 h-3.5 object-cover rounded-sm shadow-sm"
-          onError={(e) => { e.target.style.display = 'none'; }}
-        />
-        <span className="font-mono">{t.codigo.toUpperCase()}</span>
-      </div>
-      <span className="truncate">{t.nombre}</span>
+{teams.map(t => (
+  <div key={t.id} className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 items-center">
+    <span className="font-bold text-emerald-500">{t.grupo}</span>
+    <div className="flex items-center gap-2">
+      <img 
+        src={`https://countryflagsapi.netlify.app/flag/${t.codigo.toUpperCase()}.png`} 
+        alt={t.nombre} 
+        className="w-5 h-3.5 object-cover rounded-sm shadow-sm"
+        onError={(e) => { e.target.style.display = 'none'; }}
+      />
+      <span className="font-mono">{t.codigo.toUpperCase()}</span>
     </div>
-  ))}
-</div>
+    <span className="truncate">{t.nombre}</span>
+  </div>
+))}
                   {/* GESTIÓN DE SEDES */}
                   <div className="space-y-4">
                     <h3 className="text-xs font-black text-blue-400 uppercase">Gestión de Sedes ({venues.length})</h3>
