@@ -1273,7 +1273,6 @@ export default function App() {
                       <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
                     </form>
                   </div>
- ))}
   </div>
 </div>
 
