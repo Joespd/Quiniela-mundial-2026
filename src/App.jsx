@@ -298,9 +298,9 @@ export default function App() {
     const unsubscribeTeams = onSnapshot(teamsRef, (snap) => {
       setTeams(snap.docs.map(d => ({
         id: d.id,
-        nombre: d.data().Nombre || d.data().nombre,
-        codigo: d.data().Código || d.data().codigo,
-        grupo: d.data().Grupo || d.data().grupo
+        nombre: d.data().nombre || d.data().nombre,
+        codigo: d.data().código || d.data().codigo,
+        grupo: d.data().grupo || d.data().grupo
       })));
     });
 
