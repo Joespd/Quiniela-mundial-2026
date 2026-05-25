@@ -1143,29 +1143,16 @@ export default function App() {
                         <span>Nombre</span>
                       </div>
                       <div className="max-h-40 overflow-y-auto">
-
-                       {teams.map((t) => (
-  <div 
-    key={t.id} 
-    className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 items-center transition-colors"
-  >
-    <span className="font-bold text-emerald-500">{t.grupo}</span>
-    
-    <div className="flex items-center gap-2">
-      <img 
-        src={`https://countryflagsapi.netlify.app/flag/${t.codigo.toUpperCase()}.png`} 
-        alt={t.nombre} 
-        className="w-5 h-3.5 object-cover rounded-sm shadow-sm border border-slate-700"
-        onError={(e) => {
-          e.target.style.display = 'none';
-        }}
-      />
-      <span className="font-mono font-medium">{t.codigo.toUpperCase()}</span>
-    </div>
-    
-    <span className="truncate">{t.nombre}</span>
-  </div>
-))}
+                        {teams.map(t => (
+                          <div key={t.id} className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 transition-colors">
+                            <span className="font-bold text-emerald-500">{t.grupo}</span>
+                            <span className="font-mono">{t.codigo}</span>
+                            <span className="truncate">{t.nombre}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
                   {/* GESTIÓN DE SEDES */}
                   <div className="space-y-4">
@@ -1284,11 +1271,12 @@ export default function App() {
               </div>
             </div>
           </div>
-        )
+        )}
       </main>
 
       <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
         <p>App SPD • Copa del Mundo 2026 Guatemala</p>
       </footer>
     </div>
-  )}
+  );
+}
