@@ -1144,29 +1144,25 @@ export default function App() {
                       </div>
                       <div className="max-h-40 overflow-y-auto">
 
-                        {teams.map(t => (
+                       {teams.map((t) => (
   <div 
     key={t.id} 
     className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/50 text-[10px] text-slate-300 hover:bg-slate-900 items-center transition-colors"
   >
-    {/* Columna Grupo */}
     <span className="font-bold text-emerald-500">{t.grupo}</span>
     
-    {/* Columna Código con Banderas Automáticas */}
     <div className="flex items-center gap-2">
       <img 
         src={`https://countryflagsapi.netlify.app/flag/${t.codigo.toUpperCase()}.png`} 
         alt={t.nombre} 
         className="w-5 h-3.5 object-cover rounded-sm shadow-sm border border-slate-700"
         onError={(e) => {
-          // Si la bandera no carga, ocultamos el icono para no mostrar una imagen rota
           e.target.style.display = 'none';
         }}
       />
       <span className="font-mono font-medium">{t.codigo.toUpperCase()}</span>
     </div>
     
-    {/* Columna Nombre */}
     <span className="truncate">{t.nombre}</span>
   </div>
 ))}
