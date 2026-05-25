@@ -1214,78 +1214,78 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
-                {esAdministrador && (
-                  <div className="border-t border-slate-800 pt-3 mt-4">
-                    <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
-                    <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
-                      
-                      {/* SELECT PARA EQUIPO LOCAL */}
-                      <select 
-                        value={newMatch.homeTeam} 
-                        onChange={(e) => {
-                          const selectedTeam = teams.find(t => t.nombre === e.target.value);
-                          if (selectedTeam) {
-                            setNewMatch({
-                              ...newMatch, 
-                              homeTeam: selectedTeam.nombre, 
-                              homeFlag: selectedTeam.codigo.toLowerCase()
-                            });
-                          }
-                        }} 
-                        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
-                        required
-                      >
-                        <option value="">Selecciona Local</option>
-                        {teams.map(t => (
-                          <option key={t.id} value={t.nombre}>{t.nombre}</option>
-                        ))}
-                      </select>
+ {/* Crear Partido (Admin) - CON SELECTS VINCULADOS A LA TABLA DE EQUIPOS */}
+    {esAdministrador && (
+      <div className="border-t border-slate-800 pt-3 mt-4">
+        <h3 className="text-[10px] font-black text-white uppercase tracking-wider mb-2">Crear Partido en Fixture</h3>
+        <form onSubmit={handleAddMatch} className="grid grid-cols-2 gap-2 text-xs">
+          
+          {/* SELECT PARA EQUIPO LOCAL */}
+          <select 
+            value={newMatch.homeTeam} 
+            onChange={(e) => {
+              const selectedTeam = teams.find(t => t.nombre === e.target.value);
+              if (selectedTeam) {
+                setNewMatch({
+                  ...newMatch, 
+                  homeTeam: selectedTeam.nombre, 
+                  homeFlag: selectedTeam.codigo.toLowerCase()
+                });
+              }
+            }} 
+            className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
+            required
+          >
+            <option value="">Selecciona Local</option>
+            {teams.map(t => (
+              <option key={t.id} value={t.nombre}>{t.nombre}</option>
+            ))}
+          </select>
 
-                      {/* SELECT PARA EQUIPO VISITANTE */}
-                      <select 
-                        value={newMatch.awayTeam} 
-                        onChange={(e) => {
-                          const selectedTeam = teams.find(t => t.nombre === e.target.value);
-                          if (selectedTeam) {
-                            setNewMatch({
-                              ...newMatch, 
-                              awayTeam: selectedTeam.nombre, 
-                              awayFlag: selectedTeam.codigo.toLowerCase()
-                            });
-                          }
-                        }} 
-                        className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
-                        required
-                      >
-                        <option value="">Selecciona Visitante</option>
-                      {teams.map(t => (
-            <option key={t.id} value={t.nombre}>{t.nombre}</option>
-          ))}
-
-
-                      </select>
-                      
-                      {/* Los códigos de bandera se actualizan automáticamente al elegir el equipo */}
-                      <input type="text" readOnly placeholder="Cód. L" value={newMatch.homeFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
-                      <input type="text" readOnly placeholder="Cód. V" value={newMatch.awayFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
-                      
-                      <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
-                      <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
-                      <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
-</form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Footer */}
-        <footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
-          <p>App SPD • Copa del Mundo 2026 Guatemala</p>
-        </footer>
+          {/* SELECT PARA EQUIPO VISITANTE */}
+          <select 
+            value={newMatch.awayTeam} 
+            onChange={(e) => {
+              const selectedTeam = teams.find(t => t.nombre === e.target.value);
+              if (selectedTeam) {
+                setNewMatch({
+                  ...newMatch, 
+                  awayTeam: selectedTeam.nombre, 
+                  awayFlag: selectedTeam.codigo.toLowerCase()
+                });
+              }
+            }} 
+            className="bg-slate-950 border border-slate-700 py-1.5 px-2 rounded-lg text-white" 
+            required
+          >
+            <option value="">Selecciona Visitante</option>
+            {teams.map(t => (
+              <option key={t.id} value={t.nombre}>{t.nombre}</option>
+            ))}
+          </select>
+          
+          {/* Los códigos de bandera se actualizan automáticamente al elegir el equipo */}
+          <input type="text" readOnly placeholder="Cód. L" value={newMatch.homeFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
+          <input type="text" readOnly placeholder="Cód. V" value={newMatch.awayFlag} className="bg-slate-900 border border-slate-700 py-1 px-2 rounded-lg text-emerald-400 font-mono font-bold text-center" />
+          
+          <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
+          <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
+          <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
+        </form>
       </div>
+    )}
+
+    {/* Estos cierres de div balancean los contenedores que abriste arriba */}
     </div>
-  );
+  </div>
+</div>
+</div>
+</div>
+</div>
+
+<footer className="border-t border-slate-800 bg-slate-950 py-3 text-center text-[10px] text-slate-500 mt-6">
+  <p>App SPD • Copa del Mundo 2026 Guatemala</p>
+</footer>
+</div>
+);
 }
