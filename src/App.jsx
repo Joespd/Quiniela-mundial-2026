@@ -1273,7 +1273,7 @@ export default function App() {
                       <input type="text" placeholder="Estadio / Sede" value={newMatch.venue} onChange={(e) => setNewMatch({...newMatch, venue: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 text-white" required />
                       <input type="datetime-local" value={newMatch.date} onChange={(e) => setNewMatch({...newMatch, date: e.target.value})} className="bg-slate-950 border border-slate-700 py-1 px-2 rounded-lg col-span-2 font-mono text-white" required />
                       <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-slate-950 font-black py-2 rounded-lg col-span-2 uppercase transition-all">Añadir Encuentro</button>
- </form>
+</form>
                   </div>
                 </div>
               </div>
@@ -1285,6 +1285,5 @@ export default function App() {
           <p>App SPD • Copa del Mundo 2026 Guatemala</p>
         </footer>
       </div>
-    </div>
-  );
+    );
 }
